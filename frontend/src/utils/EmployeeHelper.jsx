@@ -2,6 +2,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from '../context/AuthContext.jsx';
 
+const baseURL = import.meta.env.VITE_API_URL;
+
 export const columns = [
   {
     name: "S No",
@@ -40,7 +42,7 @@ export const columns = [
 export const fetchDepartments = async () => {
   let departments;
   try {
-    const responnse = await axios.get("http://localhost:5000/api/department", {
+    const responnse = await axios.get(`${baseURL}/api/department`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -61,7 +63,7 @@ export const getEmployees = async (id) => {
   let employees;
   try {
     const responnse = await axios.get(
-      `http://localhost:5000/api/employee/department/${id}`,
+      `${baseURL}/api/employee/department/${id}`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

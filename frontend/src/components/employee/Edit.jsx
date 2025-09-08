@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { fetchDepartments } from "../../utils/EmployeeHelper";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
+const baseUrl = import.meta.env.VITE_API_URL;
 
 const Edit = () => {
   const [employee, setEmployee] = useState({
@@ -27,7 +28,7 @@ const Edit = () => {
     const fetchEmployee = async () => {
       try {
         const responnse = await axios.get(
-          `http://localhost:5000/api/employee/${id}`,
+          `${baseUrl}/api/employee/${id}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -65,7 +66,7 @@ const Edit = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/employee/${id}`,
+        `${baseUrl}/api/employee/${id}`,
         employee,
         {
           headers: {

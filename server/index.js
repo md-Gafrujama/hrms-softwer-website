@@ -9,6 +9,8 @@ import settingRouter from './routes/setting.js'
 import attendanceRouter from './routes/attendance.js'
 import dashboardRouter from './routes/dashboard.js'
 import connectToDatabase from './db/db.js'
+import dotenv from 'dotenv'
+dotenv.config()
 
 connectToDatabase() 
 const app = express() 

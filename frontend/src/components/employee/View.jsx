@@ -2,6 +2,8 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
+const baseURL = import.meta.env.VITE_API_URL;
+
 const View = () => {
   const { id } = useParams();
   const [employee, setEmployee] = useState(null);
@@ -10,7 +12,7 @@ const View = () => {
     const fetchEmployee = async () => {
       try {
         const responnse = await axios.get(
-          `http://localhost:5000/api/employee/${id}`,
+          `${baseURL}/api/employee/${id}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -39,7 +41,7 @@ const View = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <img
-                src={`http://localhost:5000/${employee.userId.profileImage}`}
+                src={`${baseURL}/${employee.userId.profileImage}`}
                 className="rounded-full border w-72"
               />
             </div>

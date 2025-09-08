@@ -2,6 +2,8 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+ const baseURL = import.meta.env.VITE_API_URL;
+
 const EditDepartment = () => {
   const { id } = useParams();
   const [department, setDepartment] = useState([]);
@@ -13,7 +15,7 @@ const EditDepartment = () => {
       setDepLoading(true);
       try {
         const responnse = await axios.get(
-          `http://localhost:5000/api/department/${id}`,
+          `${baseURL}/api/department/${id}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -44,7 +46,7 @@ const EditDepartment = () => {
     e.preventDefault();
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/department/${id}`,
+        `${baseURL}/api/department/${id}`,
         department,
         {
           headers: {

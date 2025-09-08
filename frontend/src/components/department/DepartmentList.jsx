@@ -3,11 +3,14 @@ import { Link } from "react-router-dom";
 import DataTable from "react-data-table-component";
 import { columns, DepartmentButtons } from "../../utils/DepartmentHelper";
 import axios from "axios";
+const baseURL = import.meta.env.VITE_API_URL;
+
 
 const DepartmentList = () => {
   const [departments, setDepartments] = useState([]);
   const [depLoading, setDepLoading] = useState(false)
   const [filteredDepartments, setFilteredDepartments] = useState([])
+
 
   const onDepartmentDelete =  () => {
     fetchDepartments()
@@ -17,7 +20,7 @@ const DepartmentList = () => {
     setDepLoading(true)
     try {
       const responnse = await axios.get(
-        "http://localhost:5000/api/department",
+        `${baseURL}/api/department`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

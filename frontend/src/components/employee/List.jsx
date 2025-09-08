@@ -4,6 +4,8 @@ import { columns, EmployeeButtons } from '../../utils/EmployeeHelper'
 import DataTable from 'react-data-table-component'
 import axios from 'axios'
 
+const baseURL = import.meta.env.VITE_API_URL;
+
 const List = () => {
     const [employees, setEmployees] = useState([])
     const [empLoading, setEmpLoading] = useState(false)
@@ -14,7 +16,7 @@ const List = () => {
             setEmpLoading(true)
           try {
             const responnse = await axios.get(
-              "http://localhost:5000/api/employee",
+              `${baseURL}/api/employee`,
               {
                 headers: {
                   Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -29,7 +31,7 @@ const List = () => {
                 dep_name: emp.department.dep_name,
                 name: emp.userId.name,
                 dob: new Date(emp.dob).toLocaleDateString(),
-                profileImage: <img width={40} className='rounded-full' src={`http://localhost:5000/${emp.userId.profileImage}`} />,
+                profileImage: <img width={40} className='rounded-full' src={`${baseURL}/${emp.userId.profileImage}`} />,
                 action: (<EmployeeButtons Id={emp._id} />),
               }));
               setEmployees(data);

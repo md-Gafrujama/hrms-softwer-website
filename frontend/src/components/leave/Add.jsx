@@ -3,6 +3,8 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const baseURL = import.meta.env.VITE_API_URL;
+
 const Add = () => {
     const {user} = useAuth()
 
@@ -22,7 +24,7 @@ const Add = () => {
 
     try {
         const response = await axios.post(
-          `http://localhost:5000/api/leave/add`,leave,
+          `${baseURL}/api/leave/add`,leave,
           {
             headers: {
               "Authorization": `Bearer ${localStorage.getItem("token")}`,

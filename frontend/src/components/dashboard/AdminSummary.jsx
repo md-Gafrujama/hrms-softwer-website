@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import SummaryCard from "./SummaryCard";
+ const baseURL = import.meta.env.VITE_API_URL;
+
 import {
   FaBuilding,
   FaCheckCircle,
@@ -17,7 +19,7 @@ const AdminSummary = () => {
   useEffect(() => {
     const fetchSummary = async () => {
       try {
-        const summary = await axios.get('http://localhost:5000/api/dashboard/summary', {
+        const summary = await axios.get(`${baseURL}/api/dashboard/summary`, {
           headers : {
             "Authorization" : `Bearer ${localStorage.getItem('token')}`
           }

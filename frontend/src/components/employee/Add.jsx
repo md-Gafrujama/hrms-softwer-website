@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { fetchDepartments } from "../../utils/EmployeeHelper";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+const baseURL = import.meta.env.VITE_API_URL;
 
 const Add = () => {
   const [departments, setDepartments] = useState([]);
@@ -35,7 +36,7 @@ const Add = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/employee/add",
+        `${baseURL}/api/employee/add`,
         formDataObj,
         {
           headers: {

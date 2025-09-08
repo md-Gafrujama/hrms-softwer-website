@@ -3,6 +3,10 @@ import React, { useState } from "react";
 import { useAuth } from '../context/AuthContext.jsx';
 import { useNavigate } from "react-router-dom";
 
+ const baseURL = import.meta.env.VITE_API_URL;
+
+
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +19,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
+        `${baseURL}/api/auth/login`,
         { email, password }
       );
       if(response.data.success) {

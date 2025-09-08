@@ -3,6 +3,8 @@ import { fetchDepartments, getEmployees } from "../../utils/EmployeeHelper";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 
+const baseURL = import.meta.env.VITE_API_URL;
+
 const Add = () => {
   const [salary, setSalary] = useState({
     employeeId: null,
@@ -38,7 +40,7 @@ const Add = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/salary/add`,
+        `${baseURL}/api/salary/add`,
         salary,
         {
           headers: {

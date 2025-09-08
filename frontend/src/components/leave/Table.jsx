@@ -3,13 +3,15 @@ import DataTable from "react-data-table-component";
 import { columns, LeaveButtons } from "../../utils/LeaveHelper";
 import axios from "axios";
 
+const baseURL = import.meta.env.VITE_API_URL;
+
 const Table = () => {
   const [leaves, setLeaves] = useState(null);
   const [filteredLeaves, setFilteredLeaves] = useState(null);
 
   const fetchLeaves = async () => {
     try {
-      const responnse = await axios.get("http://localhost:5000/api/leave", {
+      const responnse = await axios.get(`${baseURL}/api/leave`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
