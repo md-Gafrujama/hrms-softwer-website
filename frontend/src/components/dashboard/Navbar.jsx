@@ -14,7 +14,7 @@
 // export default Navbar
 import React from 'react'
 import { FaBars, FaTimes } from "react-icons/fa";
-import { useAuth } from '../../context/authContext'
+import { useAuth } from '../../context/AuthContext.jsx'
 
 const Navbar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
     const { user, logout } = useAuth()

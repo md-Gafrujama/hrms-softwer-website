@@ -14,10 +14,12 @@
 
 import express from 'express'
 import authMiddleware from '../middleware/authMiddlware.js'
-import {addEmployee, upload, getEmployees, getEmployee, updateEmployee, fetchEmployeesByDepId, deleteEmployee} from '../controllers/employeeController.js'
+import {addEmployee, upload, getEmployees, activeEmployee, inActiveEmployee, getEmployee, updateEmployee, fetchEmployeesByDepId, deleteEmployee} from '../controllers/employeeController.js'
 
 const router = express.Router()
 
+router.get('/active', authMiddleware,activeEmployee);
+router.get('/inactive', authMiddleware, inActiveEmployee);
 router.get('/', authMiddleware, getEmployees)
 router.post('/add', authMiddleware, upload.single('image'), addEmployee)
 router.get('/:id', authMiddleware, getEmployee)

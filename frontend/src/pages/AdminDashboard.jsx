@@ -22,7 +22,7 @@
 // export default AdminDashboard
 
 import React, { useState } from 'react'
-import { useAuth } from '../context/authContext'
+import { useAuth } from '../context/AuthContext.jsx'
 import AdminSidebar from '../components/dashboard/AdminSidebar'
 import Navbar from '../components/dashboard/Navbar'
 import AdminSummary from '../components/dashboard/AdminSummary'

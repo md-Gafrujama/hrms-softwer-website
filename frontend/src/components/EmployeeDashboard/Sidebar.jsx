@@ -91,7 +91,7 @@ import {
   FaTachometerAlt,
   FaUsers,
 } from "react-icons/fa";
-import { useAuth } from "../../context/authContext";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const { user } = useAuth();

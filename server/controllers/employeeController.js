@@ -354,6 +354,36 @@ const fetchEmployeesByDepId = async (req, res) => {
       .status(500)
       .json({ success: false, error: "get employeesbyDepId server error" });
   }
-}
+};
 
-export { addEmployee, upload, getEmployees, getEmployee, updateEmployee, fetchEmployeesByDepId, deleteEmployee };
+const activeEmployee = async (req, res) => {
+  try {
+    const employees = await Employee.find({ status: "Active" })
+      .populate("userId", { password: 0 })
+      .populate("department");
+
+    return res.status(200).json({ success: true, employees });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ success: false, error: "Get inactive employees server error" });
+  }
+};
+
+
+const inActiveEmployee = async (req, res) => {
+  try {
+    const employees = await Employee.find(); // No filter
+    return res.status(200).json({ 
+      success: true, 
+      count: employees.length,
+      statuses: employees.map(e => ({ name: e.employeeName, status: e.status })),
+      employees 
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ success: false, error: "Server error" });
+  }
+};
+
+export { addEmployee, upload, getEmployees, getEmployee, updateEmployee, fetchEmployeesByDepId, deleteEmployee,activeEmployee,inActiveEmployee };

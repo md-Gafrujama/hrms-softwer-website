@@ -122,7 +122,7 @@ import {
   FaChartLine,
   FaMoneyBillWave,
 } from "react-icons/fa";
-import { useAuth } from "../../context/authContext";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const AdminSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
   const { user } = useAuth();
