@@ -147,11 +147,18 @@ const AdminSummary = () => {
         console.log('Active Employees:', activeEmployees.data)
         console.log('Inactive Employees:', inactiveEmployees.data)
 
+        // Count employees and handle empty arrays
+        const activeCount = Array.isArray(activeEmployees.data) ? activeEmployees.data.length : 0;
+        const inactiveCount = Array.isArray(inactiveEmployees.data) ? inactiveEmployees.data.length : 0;
+
+        console.log('Active employee count:', activeCount)
+        console.log('Inactive employee count:', inactiveCount)
+
         // Combine the data
         const combinedSummary = {
           ...dashboardSummary.data,
-          activeEmployees: Array.isArray(activeEmployees.data) ? activeEmployees.data.length : 0,
-          inactiveEmployees: Array.isArray(inactiveEmployees.data) ? inactiveEmployees.data.length : 0
+          activeEmployees: activeCount,
+          inactiveEmployees: inactiveCount
         }
 
         setSummary(combinedSummary)
