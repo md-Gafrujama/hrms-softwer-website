@@ -1,9 +1,19 @@
-# Logs
-logs
-*.log
+# Dependencies
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs
+*.log
 
 # Runtime data
 pids
@@ -12,26 +22,26 @@ pids
 *.pid.lock
 
 # Build outputs
-dist
-build
-tmp
-temp
+dist/
+build/
+tmp/
+temp/
 
 # Coverage
-coverage
+coverage/
 *.lcov
 .nyc_output
 
 # Cache
-.cache
+.cache/
 
 # IDE / Editor folders
-.vscode
-.idea
+.vscode/
+.idea/
 *.swp
 *.swo
 *.swn
 
-# Misc
+# OS generated files
 .DS_Store
 Thumbs.db
