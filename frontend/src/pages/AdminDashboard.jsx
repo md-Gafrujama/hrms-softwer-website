@@ -31,21 +31,26 @@ import { Outlet } from 'react-router-dom'
 const AdminDashboard = () => {
   const { user } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   console.log('Admin Mobile menu state:', isMobileMenuOpen); // Debug log
 
   return (
-    <div className='flex min-h-screen bg-gray-100 relative overflow-hidden'>
+    <div className='flex min-h-screen bg-gray-100 relative'>
       <AdminSidebar 
         isMobileMenuOpen={isMobileMenuOpen} 
-        setIsMobileMenuOpen={setIsMobileMenuOpen} 
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+        isSidebarCollapsed={isSidebarCollapsed}
+        setIsSidebarCollapsed={setIsSidebarCollapsed}
       />
-      <div className='flex-1 transition-all duration-300 w-full md:ml-64'>
+      <div className={`flex-1 transition-all duration-300 w-full flex flex-col ${!isSidebarCollapsed ? 'md:ml-64' : 'md:ml-16'}`}>
         <Navbar 
           isMobileMenuOpen={isMobileMenuOpen} 
-          setIsMobileMenuOpen={setIsMobileMenuOpen} 
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
+          isSidebarCollapsed={isSidebarCollapsed}
+          setIsSidebarCollapsed={setIsSidebarCollapsed}
         />
-        <div className='p-4 lg:p-6 overflow-auto'>
+        <div className='flex-1 p-4 lg:p-6 overflow-auto mt-16'>
           <Outlet />
         </div>
       </div>
