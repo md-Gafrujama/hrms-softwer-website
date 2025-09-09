@@ -1,5 +1,5 @@
 import Department from "../models/Department.js";
-
+import Employee from "../models/Employee.js";
 const getDepartments = async (req, res) => {
     try {
         const departments = await Department.find()
@@ -58,4 +58,63 @@ const deleteDepartment = async (req, res) => {
     }
 }
 
-export {addDepartment, getDepartments, getDepartment, updateDepartment, deleteDepartment}
+const firstDepart = async (req, res) => {
+    try {
+        const department = await Department.findOne({ dep_name: "IT" });
+
+        if (!department) {
+            return res.status(404).json({
+                success: false,
+                message: "IT department not found",
+            });
+        }
+
+        const data = await Employee.find({ department: department._id })
+            .populate("userId", { password: 0 })
+            .populate("department");
+
+        const count = await Employee.countDocuments({ department: department._id });
+
+        return res.status(200).json({
+            success: true,
+            values: data,
+            count: count
+        });
+    } catch (error) {
+        res.status(500).json({
+            msg: error.message || "Server error",
+        });
+    }
+};
+
+const secondDepart = async (req, res) => {
+    try {
+        const department = await Department.findOne({ dep_name: "sales" });
+
+        if (!department) {
+            return res.status(404).json({
+                success: false,
+                message: "Sales department not found",
+            });
+        }
+
+        const data = await Employee.find({ department: department._id })
+            .populate("userId", { password: 0 })
+            .populate("department");
+
+        const count = await Employee.countDocuments({ department: department._id });
+
+        return res.status(200).json({
+            success: true,
+            values: data,
+            count: count
+        });
+    } catch (error) {
+        res.status(500).json({
+            msg: error.message || "Server error",
+        });
+    }
+};
+
+
+export {addDepartment, getDepartments, firstDepart, secondDepart, getDepartment, updateDepartment, deleteDepartment}

@@ -9,6 +9,7 @@ const employeeSchema = new Schema({
   gender: { type: String },
   maritalStatus: { type: String },
   designation: { type: String },
+  profileImage : {type:String},
   department: { type: Schema.Types.ObjectId, ref:"Department", required: true },
   salary: { type: Number, required: true },
   status : {type:String,default : "Inactive"},

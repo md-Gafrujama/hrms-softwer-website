@@ -7,6 +7,8 @@ const getSummary = async (req, res) => {
         const totalEmployees = await Employee.countDocuments();
 
         const totalDepartments = await Department.countDocuments();
+        const inActive = await Employee.countDocuments({status:"Inactive"});
+        const active = await Employee.countDocuments({status:"Active"});
 
         const totalSalaries = await Employee.aggregate([
             {$group: {_id: null, totalSalary: {$sum : "$salary"}}}
@@ -33,7 +35,9 @@ const getSummary = async (req, res) => {
             totalEmployees,
             totalDepartments,
             totalSalary: totalSalaries[0]?.totalSalary || 0,
-            leaveSummary
+            leaveSummary,
+            inActive,
+            active
         })
     }catch(error) {
         console.log(error.message)
