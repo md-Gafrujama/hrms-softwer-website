@@ -368,7 +368,10 @@ const activeEmployee = async (req, res) => {
       .populate("userId", { password: 0 })
       .populate("department");
 
-    return res.status(200).json({ success: true, employees });
+    const count = await Employee.countDocuments({ status: "Active" });
+
+
+    return res.status(200).json({ success: true, employees,count });
   } catch (error) {
     return res
       .status(500)
@@ -376,16 +379,16 @@ const activeEmployee = async (req, res) => {
   }
 };
 
-
 const inActiveEmployee = async (req, res) => {
-  try {
-    const employees = await Employee.find(); // No filter
-    return res.status(200).json({ 
-      success: true, 
-      count: employees.length,
-      statuses: employees.map(e => ({ name: e.employeeName, status: e.status })),
-      employees 
-    });
+    try {
+    const employees = await Employee.find({ status: "Inactive" })
+      .populate("userId", { password: 0 })
+      .populate("department");
+
+    const count = await Employee.countDocuments({ status: "Inactive" });
+
+
+    return res.status(200).json({ success: true, employees,count });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ success: false, error: "Server error" });
