@@ -187,6 +187,7 @@ const addEmployee = async (req, res) => {
       designation,
       department,
       salary,
+      status,
       password,
       role,
     } = req.body;
@@ -205,6 +206,7 @@ const addEmployee = async (req, res) => {
       email,
       password: hashPassword,
       role,
+      status,
       profileImage: req.file ? req.file.filename : "",
     });
     const savedUser = await newUser.save();
@@ -212,8 +214,10 @@ const addEmployee = async (req, res) => {
     const newEmployee = new Employee({
       userId: savedUser._id,
       employeeId,
+      employeeName : name,
       dob,
       gender,
+      status,
       maritalStatus,
       designation,
       department,
@@ -235,7 +239,9 @@ const getEmployees = async (req, res) => {
     const employees = await Employee.find()
       .populate("userId", { password: 0 })
       .populate("department");
-    return res.status(200).json({ success: true, employees });
+
+       const user = await User.find()
+    return res.status(200).json({ success: true,user,employees });
   } catch (error) {
     return res
       .status(500)

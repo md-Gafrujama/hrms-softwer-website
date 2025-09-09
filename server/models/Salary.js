@@ -20,6 +20,9 @@ const salarySchema = new Schema({
     incomeTaxes : {type:Number, required:true},
 
     netSalary: { type: Number },
+    netSalary2:{type:Number},
+    month:{type:Number},
+
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   });

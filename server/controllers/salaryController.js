@@ -19,6 +19,31 @@ const addSalary = async (req, res) => {
       incomeTaxes,
     } = req.body;
 
+    const payDateObj = new Date(payDate);
+
+    const year = payDateObj.getFullYear();
+    const month = payDateObj.getMonth() + 1; 
+
+    const totalDaysInMonth = new Date(year, month, 0).getDate();
+
+    const perDaySalary = Number(basicSalary) / totalDaysInMonth;
+
+    const loopDaysSalary = perDaySalary * (Number(loopDays) || 0);
+    const paidDaysSalary = perDaySalary * Number(paidDays || 0);
+
+    // You can use these individually or combined
+    // Example: Let's assume netSalary2 uses paidDays + loopDays
+    const adjustedBasicSalary = paidDaysSalary + loopDaysSalary;
+
+    const netSalary2 =
+      adjustedBasicSalary +
+      Number(allowances) -
+      Number(deductions) -
+      Number(medicalFund) -
+      Number(pF) -
+      Number(professionalTaxes) -
+      Number(incomeTaxes);
+
     const netSalary =
       Number(basicSalary) +
       Number(allowances) -
@@ -34,7 +59,7 @@ const addSalary = async (req, res) => {
       basicSalary: Number(basicSalary),
       grossEarning: Number(grossEarning),
       paidDays: Number(paidDays),
-      payDate: new Date(payDate),
+      payDate: payDateObj,
       loopDays: Number(loopDays) || 0,
       medicalFund: Number(medicalFund),
       pF: Number(pF),
@@ -43,6 +68,8 @@ const addSalary = async (req, res) => {
       professionalTaxes: Number(professionalTaxes),
       incomeTaxes: Number(incomeTaxes),
       netSalary,
+      netSalary2,
+      month: month,
     });
 
     await newSalary.save();
@@ -56,6 +83,7 @@ const addSalary = async (req, res) => {
   }
 };
 
+
 const getUniqueSalary = async (req, res) => {
   try {
     const { id } = req.params;
@@ -67,10 +95,9 @@ const getUniqueSalary = async (req, res) => {
       });
     }
 
-    // Use `employeeId` directly from Salary table
     const salary = await Salary.findOne({ employeeId: id })
-      .sort({ payDate: -1 }) // Get the latest salary
-      .populate("employeeId", "employeeId employeeName"); // Optional
+      .sort({ payDate: -1 }) 
+      .populate("employeeId", "employeeId employeeName"); 
 
     if (!salary) {
       return res.status(404).json({
@@ -92,7 +119,6 @@ const getUniqueSalary = async (req, res) => {
     });
   }
 };
-
 
 const getSalary = async (req, res) => {
   try {

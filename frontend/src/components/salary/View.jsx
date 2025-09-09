@@ -116,7 +116,7 @@ const View = () => {
 
   const fetchSalareis = async () => {
     try {
-      const response = await axios.get(`${baseURL}/api/salary/${id}/${user.role}`, {
+      const response = await axios.get(`${baseURL}/api/salary/${id}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
