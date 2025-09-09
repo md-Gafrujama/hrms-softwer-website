@@ -1,466 +1,1626 @@
-// import React, { useEffect, useState } from "react";
+// import React, { useEffect, useState, useCallback } from "react";
 // import { Link, useParams } from "react-router-dom";
 // import axios from "axios";
 // import { useAuth } from "../../context/authContext";
 
 // const View = () => {
-//   const [salaries, setSalaries] = useState(null);
-//   const [filteredSalaries, setFilteredSalaries] = useState(null);
+//   const [salaries, setSalaries] = useState([]);
+//   const [filteredSalaries, setFilteredSalaries] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [searchQuery, setSearchQuery] = useState("");
 //   const { id } = useParams();
-//   let sno = 1;
-//   const {user} = useAuth()
+//   const { user } = useAuth();
 
-//   const fetchSalareis = async () => {
+//   const baseURL = import.meta.env.VITE_API_URL;
+
+//   const fetchSalaries = useCallback(async () => {
+//     if (!id) {
+//       setError("Employee ID is required");
+//       setLoading(false);
+//       return;
+//     }
+
 //     try {
-//       const response = await axios.get(`http://localhost:5000/api/salary/${id}/${user.role}`, {
+//       setLoading(true);
+//       setError(null);
+      
+//       const token = localStorage.getItem("token");
+//       if (!token) {
+//         throw new Error("Authentication token not found");
+//       }
+
+//       const response = await axios.get(`${baseURL}/api/salary/${id}`, {
 //         headers: {
-//           Authorization: `Bearer ${localStorage.getItem("token")}`,
+//           Authorization: `Bearer ${token}`,
 //         },
 //       });
+
+//       // Debug logging
+//       console.log("API Response:", response.data);
+//       console.log("Employee ID from URL:", id);
+//       console.log("Base URL:", baseURL);
+
 //       if (response.data.success) {
-//         setSalaries(response.data.salary);
-//         setFilteredSalaries(response.data.salary);
+//         const salaryData = response.data.salary || response.data.data || response.data.salaries || [];
+//         console.log("Salary data received:", salaryData);
+//         console.log("Number of records:", salaryData.length);
+        
+//         // Log first record structure for debugging
+//         if (salaryData.length > 0) {
+//           console.log("First record structure:", salaryData[0]);
+//           console.log("Employee ID in record:", salaryData[0].employeeId);
+//           console.log("Employee Name in record:", salaryData[0].employeeName);
+//         }
+        
+//         setSalaries(salaryData);
+//         setFilteredSalaries(salaryData);
+        
+//         if (salaryData.length === 0) {
+//           console.warn("API returned success but no salary records found for employee:", id);
+//         }
+//       } else {
+//         console.error("API returned success: false", response.data);
+//         throw new Error(response.data.message || "Failed to fetch salary data");
 //       }
 //     } catch (error) {
-//       if (error.response && !error.response.data.success) {
-//         alert(error.message);
+//       console.error("Error fetching salaries:", error);
+      
+//       let errorMessage = "An error occurred while fetching salaries";
+      
+//       if (error.response) {
+//         // Server responded with error status
+//         if (error.response.status === 401) {
+//           errorMessage = "Authentication failed. Please login again.";
+//         } else if (error.response.status === 403) {
+//           errorMessage = "You don't have permission to view this data.";
+//         } else if (error.response.status === 404) {
+//           errorMessage = "Employee salary data not found.";
+//         } else {
+//           errorMessage = error.response.data?.message || errorMessage;
+//         }
+//       } else if (error.request) {
+//         // Request was made but no response received
+//         errorMessage = "Network error. Please check your connection.";
+//       } else {
+//         // Something else happened
+//         errorMessage = error.message || errorMessage;
 //       }
+      
+//       setError(errorMessage);
+//       setSalaries([]);
+//       setFilteredSalaries([]);
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, [baseURL, id]);
+
+//   useEffect(() => {
+//     fetchSalaries();
+//   }, [fetchSalaries]);
+
+//   const handleSearch = useCallback((query) => {
+//     setSearchQuery(query);
+    
+//     if (!query.trim()) {
+//       setFilteredSalaries(salaries);
+//       return;
+//     }
+
+//     const searchTerm = query.toLowerCase().trim();
+//     const filteredRecords = salaries.filter((salary) => {
+//       // Search in multiple fields for better UX
+//       const employeeId = salary.employeeId?.employeeId || salary.employeeId || "";
+//       const employeeName = salary.employeeName || salary.employeeId?.name || "";
+//       const payDate = salary.payDate ? new Date(salary.payDate).toLocaleDateString() : "";
+      
+//       return (
+//         employeeId.toLowerCase().includes(searchTerm) ||
+//         employeeName.toLowerCase().includes(searchTerm) ||
+//         payDate.includes(searchTerm)
+//       );
+//     });
+    
+//     setFilteredSalaries(filteredRecords);
+//   }, [salaries]);
+
+//   const formatCurrency = (amount) => {
+//     const numAmount = parseFloat(amount) || 0;
+//     return `₹${numAmount.toLocaleString('en-IN', { 
+//       minimumFractionDigits: 2, 
+//       maximumFractionDigits: 2 
+//     })}`;
+//   };
+
+//   const formatDate = (dateString) => {
+//     if (!dateString) return 'N/A';
+//     try {
+//       return new Date(dateString).toLocaleDateString('en-IN', {
+//         year: 'numeric',
+//         month: 'short',
+//         day: 'numeric'
+//       });
+//     } catch (error) {
+//       return 'Invalid Date';
 //     }
 //   };
 
-//   useEffect(() => {
-//     fetchSalareis();
-//   }, []);
-
-//   const filterSalaries = (q) => {
-//     const filteredRecords = salaries.filter((leave) =>
-//       leave.employeeId.toLocaleLowerCase().includes(q.toLocaleLowerCase())
-//     );
-//     setFilteredSalaries(filteredRecords);
+//   const getEmployeeDisplay = (salary) => {
+//     return salary.employeeId?.employeeId || 
+//            salary.employeeId || 
+//            salary.employeeName || 
+//            'N/A';
 //   };
 
-//   return (
-//     <>
-//       {filteredSalaries === null ? (
-//         <div>Loading ...</div>
-//       ) : (
-//         <div className="overflow-x-auto p-5">
-//           <div className="text-center">
-//             <h2 className="text-2xl font-bold">Salary History</h2>
-//           </div>
-//           <div className=" flex justify-end my-3">
-//             <input
-//               type="text"
-//               placeholder="Search By Emp ID"
-//               className="border px-2 rounded-md py-0.5 border-gray-300"
-//               onChange={filterSalaries}
-//             />
-//           </div>
+//   const retryFetch = () => {
+//     fetchSalaries();
+//   };
 
-//         {filteredSalaries.length > 0 ?(
-//           <table className="w-full text-sm text-left text-gray-500">
-//             <thead className="text-xs text-gray-700 uppercase bg-gray-50 border border-gray-200">
+//   if (loading) {
+//     return (
+//       <div className="flex justify-center items-center h-64">
+//         <div className="text-center">
+//           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-teal-600 mx-auto"></div>
+//           <p className="mt-4 text-gray-600">Loading salary history...</p>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   if (error) {
+//     return (
+//       <div className="flex justify-center items-center h-64">
+//         <div className="text-center max-w-md">
+//           <div className="text-red-500 text-6xl mb-4">⚠️</div>
+//           <h3 className="text-lg font-semibold text-gray-800 mb-2">Error Loading Data</h3>
+//           <p className="text-gray-600 mb-4">{error}</p>
+//           <button
+//             onClick={retryFetch}
+//             className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-md transition duration-200"
+//           >
+//             Try Again
+//           </button>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="p-5">
+//       <div className="mb-6">
+//         <div className="text-center mb-4">
+//           <h2 className="text-3xl font-bold text-gray-800">Salary History</h2>
+//           {user && (
+//             <p className="text-gray-600 mt-1">
+//               Employee ID: {id} | Total Records: {filteredSalaries.length}
+//             </p>
+//           )}
+//         </div>
+
+//         {/* Search and Actions Bar */}
+//         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+//           <div className="flex-1 max-w-md">
+//             <div className="relative">
+//               <input
+//                 type="text"
+//                 placeholder="Search by Employee ID, Name, or Date..."
+//                 value={searchQuery}
+//                 onChange={(e) => handleSearch(e.target.value)}
+//                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+//               />
+//               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+//                 <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+//                 </svg>
+//               </div>
+//               {searchQuery && (
+//                 <button
+//                   onClick={() => handleSearch("")}
+//                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
+//                 >
+//                   <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+//                   </svg>
+//                 </button>
+//               )}
+//             </div>
+//           </div>
+          
+//           <div className="flex gap-2">
+//             <button
+//               onClick={retryFetch}
+//               className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md transition duration-200 flex items-center gap-2"
+//             >
+//               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+//               </svg>
+//               Refresh
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+
+//       {filteredSalaries.length > 0 ? (
+//         <div className="overflow-x-auto shadow-lg rounded-lg">
+//           <table className="w-full text-sm text-left bg-white">
+//             <thead className="text-xs text-gray-700 uppercase bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
 //               <tr>
-//                 <th className="px-6 py-3">SNO</th>
-//                 <th className="px-6 py-3">Emp ID</th>
-//                 <th className="px-6 py-3">Salary</th>
-//                 <th className="px-6 py-3">Allowance</th>
-//                 <th className="px-6 py-3">Deduction</th>
-//                 <th className="px-6 py-3">Total</th>
-//                 <th className="px-6 py-3">Pay Date</th>
+//                 <th className="px-6 py-4 font-semibold">S.No</th>
+//                 <th className="px-6 py-4 font-semibold">Employee ID</th>
+//                 <th className="px-6 py-4 font-semibold">Basic Salary</th>
+//                 <th className="px-6 py-4 font-semibold">Allowances</th>
+//                 <th className="px-6 py-4 font-semibold">Gross Earning</th>
+//                 <th className="px-6 py-4 font-semibold">Deductions</th>
+//                 <th className="px-6 py-4 font-semibold">Net Salary</th>
+//                 <th className="px-6 py-4 font-semibold">Pay Date</th>
+//                 <th className="px-6 py-4 font-semibold">Actions</th>
 //               </tr>
 //             </thead>
 //             <tbody>
-//               {filteredSalaries.map((salary) => (
+//               {filteredSalaries.map((salary, index) => (
 //                 <tr
-//                   key={salary.id}
-//                   className="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
+//                   key={salary._id || salary.id || index}
+//                   className={`border-b hover:bg-gray-50 transition-colors ${
+//                     index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
+//                   }`}
 //                 >
-//                   <td className="px-6 py-3">{sno++}</td>
-//                   <td className="px-6 py-3">{salary.employeeId.employeeId}</td>
-//                   <td className="px-6 py-3">
-//                     {salary.basicSalary}
+//                   <td className="px-6 py-4 font-medium text-gray-900">
+//                     {index + 1}
 //                   </td>
-//                   <td className="px-6 py-3">
-//                     {salary.allowances}
+//                   <td className="px-6 py-4">
+//                     <div className="font-medium text-gray-900">
+//                       {getEmployeeDisplay(salary)}
+//                     </div>
+//                     {salary.employeeName && (
+//                       <div className="text-sm text-gray-500">{salary.employeeName}</div>
+//                     )}
 //                   </td>
-//                   <td className="px-6 py-3">{salary.deductions}</td>
-//                   <td className="px-6 py-3">{salary.netSalary}</td>
-//                   <td className="px-6 py-3">
-//                     {new Date(salary.payDate).toLocaleDateString()}
+//                   <td className="px-6 py-4 font-medium">
+//                     {formatCurrency(salary.basicSalary)}
+//                   </td>
+//                   <td className="px-6 py-4 text-green-600 font-medium">
+//                     {formatCurrency(salary.allowances)}
+//                   </td>
+//                   <td className="px-6 py-4 font-semibold text-blue-600">
+//                     {formatCurrency(salary.grossEarning || (parseFloat(salary.basicSalary || 0) + parseFloat(salary.allowances || 0)))}
+//                   </td>
+//                   <td className="px-6 py-4 text-red-600 font-medium">
+//                     {formatCurrency(salary.deductions)}
+//                   </td>
+//                   <td className="px-6 py-4">
+//                     <span className="font-bold text-lg text-green-700 bg-green-50 px-3 py-1 rounded-full">
+//                       {formatCurrency(salary.netSalary)}
+//                     </span>
+//                   </td>
+//                   <td className="px-6 py-4 text-gray-600">
+//                     {formatDate(salary.payDate)}
+//                   </td>
+//                   <td className="px-6 py-4">
+//                     <div className="flex gap-2">
+//                       <button
+//                         className="text-blue-600 hover:text-blue-800 p-1 rounded"
+//                         title="View Details"
+//                       >
+//                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+//                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+//                         </svg>
+//                       </button>
+//                       <button
+//                         className="text-green-600 hover:text-green-800 p-1 rounded"
+//                         title="Download Payslip"
+//                       >
+//                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+//                         </svg>
+//                       </button>
+//                     </div>
 //                   </td>
 //                 </tr>
 //               ))}
 //             </tbody>
 //           </table>
-//           ): <div>No Records</div>}
+//         </div>
+//       ) : (
+//         <div className="text-center py-12">
+//           <div className="text-gray-400 text-6xl mb-4">📄</div>
+//           <h3 className="text-lg font-semibold text-gray-600 mb-2">No Salary Records Found</h3>
+//           <p className="text-gray-500 mb-4">
+//             {searchQuery 
+//               ? `No records match your search for "${searchQuery}"` 
+//               : "No salary records are available for this employee"
+//             }
+//           </p>
+//           {searchQuery && (
+//             <button
+//               onClick={() => handleSearch("")}
+//               className="text-teal-600 hover:text-teal-800 font-medium"
+//             >
+//               Clear search and show all records
+//             </button>
+//           )}
 //         </div>
 //       )}
-//     </>
+
+//       {/* Summary Statistics */}
+//       {filteredSalaries.length > 0 && (
+//         <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+//           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+//             <h3 className="text-sm font-medium text-blue-800">Total Records</h3>
+//             <p className="text-2xl font-bold text-blue-900">{filteredSalaries.length}</p>
+//           </div>
+//           <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+//             <h3 className="text-sm font-medium text-green-800">Total Paid</h3>
+//             <p className="text-lg font-bold text-green-900">
+//               {formatCurrency(filteredSalaries.reduce((sum, salary) => sum + parseFloat(salary.netSalary || 0), 0))}
+//             </p>
+//           </div>
+//           <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+//             <h3 className="text-sm font-medium text-purple-800">Average Salary</h3>
+//             <p className="text-lg font-bold text-purple-900">
+//               {formatCurrency(filteredSalaries.reduce((sum, salary) => sum + parseFloat(salary.netSalary || 0), 0) / filteredSalaries.length)}
+//             </p>
+//           </div>
+//           <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+//             <h3 className="text-sm font-medium text-orange-800">Latest Payment</h3>
+//             <p className="text-sm font-bold text-orange-900">
+//               {formatDate(Math.max(...filteredSalaries.map(s => new Date(s.payDate || 0).getTime())))}
+//             </p>
+//           </div>
+//         </div>
+//       )}
+//     </div>
 //   );
 // };
 
 // export default View;
-import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+
+
+// // import React, { useEffect, useState } from "react";
+// // import { Link, useParams } from "react-router-dom";
+// // import axios from "axios";
+// // import { useAuth } from "../../context/AuthContext.jsx";
+// // const baseURL = import.meta.env.VITE_API_URL;
+
+// // const View = () => {
+// //   const [salaries, setSalaries] = useState(null);
+// //   const [filteredSalaries, setFilteredSalaries] = useState(null);
+// //   const { id } = useParams();
+// //   let sno = 1;
+// //   const { user } = useAuth();
+
+// //   const fetchSalareis = async () => {
+// //     try {
+// //       const response = await axios.get(`${baseURL}/api/salary/${id}`, {
+// //         headers: {
+// //           Authorization: `Bearer ${localStorage.getItem("token")}`,
+// //         },
+// //       });
+// //       if (response.data.success) {
+// //         setSalaries(response.data.salary);
+// //         setFilteredSalaries(response.data.salary);
+// //       }
+// //     } catch (error) {
+// //       if (error.response && !error.response.data.success) {
+// //         alert(error.message);
+// //       }
+// //     }
+// //   };
+
+// //   useEffect(() => {
+// //     fetchSalareis();
+// //   }, []);
+
+// //   const filterSalaries = (e) => {
+// //     const q = e.target.value;
+// //     const filteredRecords = salaries.filter((salary) =>
+// //       salary.employeeId.employeeId.toLowerCase().includes(q.toLowerCase())
+// //     );
+// //     setFilteredSalaries(filteredRecords);
+// //   };
+
+// //   // PDF Generation Function
+// //   const generatePDF = (salary) => {
+// //     const printWindow = window.open('', '_blank');
+// //     const payDate = new Date(salary.payDate).toLocaleDateString();
+// //     const payPeriod = new Date(salary.payDate).toLocaleDateString('en-US', { 
+// //       month: 'long', 
+// //       year: 'numeric' 
+// //     });
+
+// //     const pdfContent = `
+// //       <!DOCTYPE html>
+// //       <html>
+// //       <head>
+// //         <title>Payslip - ${salary.employeeId.employeeId}</title>
+// //         <style>
+// //           body { 
+// //             font-family: Arial, sans-serif; 
+// //             margin: 20px; 
+// //             line-height: 1.4;
+// //           }
+// //           .header { 
+// //             text-align: center; 
+// //             margin-bottom: 20px; 
+// //             font-size: 12px;
+// //             color: #666;
+// //           }
+// //           .company-info { 
+// //             text-align: center; 
+// //             margin-bottom: 30px; 
+// //           }
+// //           .company-info h2 {
+// //             margin: 10px 0;
+// //             color: #333;
+// //           }
+// //           .employee-summary { 
+// //             background-color: #f5f5f5; 
+// //             padding: 15px; 
+// //             margin-bottom: 20px; 
+// //             border: 1px solid #ddd;
+// //           }
+// //           .employee-summary h3 {
+// //             margin-top: 0;
+// //             color: #333;
+// //           }
+// //           .pay-details { 
+// //             display: flex; 
+// //             justify-content: space-between; 
+// //             margin-bottom: 20px; 
+// //             gap: 20px;
+// //           }
+// //           .earnings, .deductions { 
+// //             width: 45%; 
+// //           }
+// //           .earnings h4, .deductions h4 {
+// //             margin-top: 0;
+// //             color: #333;
+// //             border-bottom: 1px solid #ddd;
+// //             padding-bottom: 5px;
+// //           }
+// //           .table { 
+// //             width: 100%; 
+// //             border-collapse: collapse; 
+// //             margin-bottom: 10px;
+// //           }
+// //           .table th, .table td { 
+// //             border: 1px solid #ddd; 
+// //             padding: 8px; 
+// //             text-align: left; 
+// //           }
+// //           .table th { 
+// //             background-color: #f2f2f2; 
+// //             font-weight: bold;
+// //           }
+// //           .summary-table {
+// //             width: 100%;
+// //             border-collapse: collapse;
+// //           }
+// //           .summary-table td {
+// //             padding: 5px 10px;
+// //             border: 1px solid #ddd;
+// //           }
+// //           .total-section { 
+// //             margin-top: 20px; 
+// //             padding: 15px; 
+// //             background-color: #f9f9f9; 
+// //             border: 1px solid #ddd;
+// //             text-align: center;
+// //           }
+// //           .total-section h3 {
+// //             margin-top: 0;
+// //             color: #333;
+// //           }
+// //           .net-pay { 
+// //             font-size: 18px; 
+// //             font-weight: bold; 
+// //             text-align: center; 
+// //             margin: 20px 0; 
+// //             padding: 15px;
+// //             background-color: #e8f4f8;
+// //             border: 2px solid #007bff;
+// //             border-radius: 5px;
+// //           }
+// //           .footer { 
+// //             text-align: center; 
+// //             margin-top: 30px; 
+// //             font-style: italic; 
+// //             font-size: 12px;
+// //             color: #666;
+// //           }
+// //           .amount-words {
+// //             font-size: 16px;
+// //             margin-top: 10px;
+// //             font-weight: normal;
+// //           }
+// //           @media print {
+// //             body { margin: 0; }
+// //             .no-print { display: none; }
+// //           }
+// //         </style>
+// //       </head>
+// //       <body>
+// //         <div class="header">
+// //           <p>Powered by Simplify payroll and compliance. Visit zoho.com/payroll</p>
+// //         </div>
+        
+// //         <div class="company-info">
+// //           <h2>Quore B2b Private Limited</h2>
+// //           <p>Marvel Fuego Office no 7140 seventh floor, Magarpatta road Hadapsar Pune India</p>
+// //         </div>
+
+// //         <div class="employee-summary">
+// //           <h3>EMPLOYEE SUMMARY</h3>
+// //           <table class="summary-table">
+// //             <tr>
+// //               <td><strong>Employee Name</strong></td>
+// //               <td>${salary.employeeId.name || salary.employeeId.employeeId}</td>
+// //               <td><strong>Employee ID</strong></td>
+// //               <td>${salary.employeeId.employeeId}</td>
+// //             </tr>
+// //             <tr>
+// //               <td><strong>Pay Period</strong></td>
+// //               <td>${payPeriod}</td>
+// //               <td><strong>Pay Date</strong></td>
+// //               <td>${payDate}</td>
+// //             </tr>
+// //             <tr>
+// //               <td colspan="2"><strong>Total Net Pay</strong></td>
+// //               <td colspan="2"><strong>Rs.${parseFloat(salary.netSalary).toFixed(2)}</strong></td>
+// //             </tr>
+// //             <tr>
+// //               <td><strong>Paid Days</strong></td>
+// //               <td>31</td>
+// //               <td><strong>LOP Days</strong></td>
+// //               <td>0</td>
+// //             </tr>
+// //           </table>
+// //         </div>
+
+// //         <div class="pay-details">
+// //           <div class="earnings">
+// //             <h4>EARNINGS</h4>
+// //             <table class="table">
+// //               <tr>
+// //                 <td>Basic</td>
+// //                 <td>Rs.${parseFloat(salary.basicSalary).toFixed(2)}</td>
+// //               </tr>
+// //               <tr>
+// //                 <td>Allowances</td>
+// //                 <td>Rs.${parseFloat(salary.allowances).toFixed(2)}</td>
+// //               </tr>
+// //             </table>
+// //             <table class="table">
+// //               <tr style="background-color: #f0f0f0;">
+// //                 <td><strong>Gross Earnings</strong></td>
+// //                 <td><strong>Rs.${(parseFloat(salary.basicSalary) + parseFloat(salary.allowances)).toFixed(2)}</strong></td>
+// //               </tr>
+// //             </table>
+// //           </div>
+
+// //           <div class="deductions">
+// //             <h4>DEDUCTIONS</h4>
+// //             <table class="table">
+// //               <tr>
+// //                 <td>Income Tax</td>
+// //                 <td>Rs.0.00</td>
+// //               </tr>
+// //               <tr>
+// //                 <td>Provident Fund</td>
+// //                 <td>Rs.0.00</td>
+// //               </tr>
+// //               <tr>
+// //                 <td>Other Deductions</td>
+// //                 <td>Rs.${parseFloat(salary.deductions).toFixed(2)}</td>
+// //               </tr>
+// //             </table>
+// //             <table class="table">
+// //               <tr style="background-color: #f0f0f0;">
+// //                 <td><strong>Total Deductions</strong></td>
+// //                 <td><strong>Rs.${parseFloat(salary.deductions).toFixed(2)}</strong></td>
+// //               </tr>
+// //             </table>
+// //           </div>
+// //         </div>
+
+// //         <div class="total-section">
+// //           <h3>TOTAL NET PAYABLE</h3>
+// //           <p>Gross Earnings - Total Deductions</p>
+// //           <p style="font-size: 20px; font-weight: bold; margin: 10px 0;">Rs.${parseFloat(salary.netSalary).toFixed(2)}</p>
+// //         </div>
+
+// //         <div class="net-pay">
+// //           <div class="amount-words">
+// //             Amount In Words: Indian Rupee ${convertToWords(salary.netSalary)} Only
+// //           </div>
+// //         </div>
+
+// //         <div class="footer">
+// //           -- This is a system-generated document. --
+// //         </div>
+
+// //         <div class="no-print" style="text-align: center; margin-top: 20px;">
+// //           <button onclick="window.print()" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">Print PDF</button>
+// //           <button onclick="window.close()" style="padding: 10px 20px; background-color: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
+// //         </div>
+// //       </body>
+// //       </html>
+// //     `;
+
+// //     printWindow.document.write(pdfContent);
+// //     printWindow.document.close();
+// //   };
+
+// //   // Simple number to words conversion
+// //   const convertToWords = (num) => {
+// //     const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+// //     const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+// //     const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+// //     const convert = (n) => {
+// //       if (n === 0) return '';
+// //       if (n < 10) return ones[n];
+// //       if (n < 20) return teens[n - 10];
+// //       if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : '');
+// //       if (n < 1000) return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + convert(n % 100) : '');
+// //       if (n < 100000) return convert(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + convert(n % 1000) : '');
+// //       return 'Number too large';
+// //     };
+
+// //     const n = parseInt(num);
+// //     if (n === 0) return 'Zero';
+// //     return convert(n);
+// //   };
+
+// //   return (
+// //     <>
+// //       {filteredSalaries === null ? (
+// //         <div>Loading ...</div>
+// //       ) : (
+// //         <div className="overflow-x-auto p-5">
+// //           <div className="text-center">
+// //             <h2 className="text-2xl font-bold">Salary History</h2>
+// //           </div>
+// //           <div className="flex justify-end my-3">
+// //             <input
+// //               type="text"
+// //               placeholder="Search By Emp ID"
+// //               className="border px-2 rounded-md py-0.5 border-gray-300"
+// //               onChange={filterSalaries}
+// //             />
+// //           </div>
+// //           {filteredSalaries.length > 0 ? (
+// //             <table className="w-full text-sm text-left text-gray-500">
+// //               <thead className="text-xs text-gray-700 uppercase bg-gray-50 border border-gray-200">
+// //                 <tr>
+// //                   <th className="px-6 py-3">SNO</th>
+// //                   <th className="px-6 py-3">Emp ID</th>
+// //                   <th className="px-6 py-3">Salary</th>
+// //                   <th className="px-6 py-3">Allowance</th>
+// //                   <th className="px-6 py-3">Deduction</th>
+// //                   <th className="px-6 py-3">Total</th>
+// //                   <th className="px-6 py-3">Pay Date</th>
+// //                   <th className="px-6 py-3">Action</th>
+// //                 </tr>
+// //               </thead>
+// //               <tbody>
+// //                 {filteredSalaries.map((salary) => (
+// //                   <tr
+// //                     key={salary.id}
+// //                     className="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
+// //                   >
+// //                     <td className="px-6 py-3">{sno++}</td>
+// //                     <td className="px-6 py-3">{salary.employeeId.employeeId}</td>
+// //                     <td className="px-6 py-3">{salary.basicSalary}</td>
+// //                     <td className="px-6 py-3">{salary.allowances}</td>
+// //                     <td className="px-6 py-3">{salary.deductions}</td>
+// //                     <td className="px-6 py-3">{salary.netSalary}</td>
+// //                     <td className="px-6 py-3">
+// //                       {new Date(salary.payDate).toLocaleDateString()}
+// //                     </td>
+// //                     <td className="px-6 py-3">
+// //                       <button
+// //                         onClick={() => generatePDF(salary)}
+// //                         className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs"
+// //                       >
+// //                         View
+// //                       </button>
+// //                     </td>
+// //                   </tr>
+// //                 ))}
+// //               </tbody>
+// //             </table>
+// //           ) : (
+// //             <div>No Records</div>
+// //           )}
+// //         </div>
+// //       )}
+// //     </>
+// //   );
+// // };
+
+// // export default View;
+
+
+
+import React, { useEffect, useState, useCallback } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "../../context/AuthContext.jsx";
-const baseURL = import.meta.env.VITE_API_URL;
+import { useAuth } from "../../context/authContext";
+
+// PayslipModal component
+const PayslipModal = ({ salary, onClose, formatCurrency, formatDate, getEmployeeName, getEmployeeDisplay, handleDownloadPayslip }) => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="p-6">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">Salary Slip</h2>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleDownloadPayslip(salary)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center gap-2"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 712-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Download
+            </button>
+            <button
+              onClick={onClose}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+
+        {/* Payslip Content */}
+        <div className="border-2 border-gray-300 rounded-lg p-6 bg-white">
+          {/* Company Header */}
+          <div className="text-center mb-6 border-b pb-4">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">COMPANY NAME</h1>
+            <p className="text-gray-600">Salary Slip for the month of {formatDate(salary.payDate)}</p>
+          </div>
+
+          {/* Employee Details */}
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-2">Employee Details</h3>
+              <div className="space-y-1 text-sm">
+                <p><span className="font-medium">Name:</span> {getEmployeeName(salary)}</p>
+                <p><span className="font-medium">Employee ID:</span> {getEmployeeDisplay(salary)}</p>
+                <p><span className="font-medium">Paid Days:</span> {salary.paidDays || 'N/A'}</p>
+                <p><span className="font-medium">Loop Days:</span> {salary.loopDays || 'N/A'}</p>
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-2">Payment Details</h3>
+              <div className="space-y-1 text-sm">
+                <p><span className="font-medium">Pay Date:</span> {formatDate(salary.payDate)}</p>
+                <p><span className="font-medium">Created:</span> {formatDate(salary.createdAt)}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Earnings and Deductions */}
+          <div className="grid grid-cols-2 gap-6 mb-6">
+            {/* Earnings */}
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-3 bg-green-50 p-2 rounded">Earnings</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between border-b pb-1">
+                  <span>Basic Salary</span>
+                  <span>{formatCurrency(salary.basicSalary)}</span>
+                </div>
+                <div className="flex justify-between border-b pb-1">
+                  <span>Allowances</span>
+                  <span>{formatCurrency(salary.allowances)}</span>
+                </div>
+                <div className="flex justify-between font-semibold text-green-600 bg-green-50 p-2 rounded">
+                  <span>Gross Earnings</span>
+                  <span>{formatCurrency(salary.grossEarning)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Deductions */}
+            <div>
+              <h3 className="font-semibold text-gray-800 mb-3 bg-red-50 p-2 rounded">Deductions</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between border-b pb-1">
+                  <span>Professional Tax</span>
+                  <span>{formatCurrency(salary.professionalTaxes)}</span>
+                </div>
+                <div className="flex justify-between border-b pb-1">
+                  <span>Income Tax</span>
+                  <span>{formatCurrency(salary.incomeTaxes)}</span>
+                </div>
+                <div className="flex justify-between border-b pb-1">
+                  <span>PF</span>
+                  <span>{formatCurrency(salary.pF)}</span>
+                </div>
+                <div className="flex justify-between border-b pb-1">
+                  <span>Medical Fund</span>
+                  <span>{formatCurrency(salary.medicalFund)}</span>
+                </div>
+                <div className="flex justify-between font-semibold text-red-600 bg-red-50 p-2 rounded">
+                  <span>Total Deductions</span>
+                  <span>{formatCurrency(salary.deductions)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Net Salary */}
+          <div className="border-t-2 pt-4">
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-xl font-bold text-gray-800">NET SALARY</span>
+                <span className="text-2xl font-bold text-blue-600">{formatCurrency(salary.netSalary)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="mt-6 text-center text-sm text-gray-500 border-t pt-4">
+            <p>This is a computer generated salary slip and does not require signature</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 const View = () => {
-  const [salaries, setSalaries] = useState(null);
-  const [filteredSalaries, setFilteredSalaries] = useState(null);
-  const { id } = useParams();
-  let sno = 1;
+  const [salaries, setSalaries] = useState([]);
+  const [filteredSalaries, setFilteredSalaries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showPayslip, setShowPayslip] = useState(false);
+  const [selectedSalary, setSelectedSalary] = useState(null);
+  const { id } = useParams(); // This will be undefined for employee access
   const { user } = useAuth();
 
-  const fetchSalareis = async () => {
+  const baseURL = import.meta.env.VITE_API_URL;
+
+  // Helper functions
+  const formatCurrency = (amount) => {
+    const numAmount = parseFloat(amount) || 0;
+    return `₹${numAmount.toLocaleString('en-IN', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    })}`;
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     try {
-      const response = await axios.get(`${baseURL}/api/salary/${id}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+      return new Date(dateString).toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
       });
-      if (response.data.success) {
-        setSalaries(response.data.salary);
-        setFilteredSalaries(response.data.salary);
-      }
     } catch (error) {
-      if (error.response && !error.response.data.success) {
-        alert(error.message);
-      }
+      return 'Invalid Date';
     }
   };
 
-  useEffect(() => {
-    fetchSalareis();
-  }, []);
-
-  const filterSalaries = (e) => {
-    const q = e.target.value;
-    const filteredRecords = salaries.filter((salary) =>
-      salary.employeeId.employeeId.toLowerCase().includes(q.toLowerCase())
-    );
-    setFilteredSalaries(filteredRecords);
+  const getEmployeeDisplay = (salary) => {
+    const employeeId = 
+      salary.employeeId?.employeeId ||
+      salary.employeeId ||
+      salary.empId ||
+      salary.employeeNumber ||
+      'N/A';
+    
+    return String(employeeId);
   };
 
-  // PDF Generation Function
-  const generatePDF = (salary) => {
-    const printWindow = window.open('', '_blank');
-    const payDate = new Date(salary.payDate).toLocaleDateString();
-    const payPeriod = new Date(salary.payDate).toLocaleDateString('en-US', { 
-      month: 'long', 
-      year: 'numeric' 
-    });
+  const getEmployeeName = (salary) => {
+    return salary.employeeName || 
+           salary.employeeId?.name || 
+           salary.employeeId?.employeeName ||
+           salary.name ||
+           salary.fullName ||
+           user?.name ||
+           user?.employeeName ||
+           'N/A';
+  };
 
-    const pdfContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Payslip - ${salary.employeeId.employeeId}</title>
-        <style>
-          body { 
-            font-family: Arial, sans-serif; 
-            margin: 20px; 
-            line-height: 1.4;
-          }
-          .header { 
-            text-align: center; 
-            margin-bottom: 20px; 
-            font-size: 12px;
-            color: #666;
-          }
-          .company-info { 
-            text-align: center; 
-            margin-bottom: 30px; 
-          }
-          .company-info h2 {
-            margin: 10px 0;
-            color: #333;
-          }
-          .employee-summary { 
-            background-color: #f5f5f5; 
-            padding: 15px; 
-            margin-bottom: 20px; 
-            border: 1px solid #ddd;
-          }
-          .employee-summary h3 {
-            margin-top: 0;
-            color: #333;
-          }
-          .pay-details { 
-            display: flex; 
-            justify-content: space-between; 
-            margin-bottom: 20px; 
-            gap: 20px;
-          }
-          .earnings, .deductions { 
-            width: 45%; 
-          }
-          .earnings h4, .deductions h4 {
-            margin-top: 0;
-            color: #333;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
-          }
-          .table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-bottom: 10px;
-          }
-          .table th, .table td { 
-            border: 1px solid #ddd; 
-            padding: 8px; 
-            text-align: left; 
-          }
-          .table th { 
-            background-color: #f2f2f2; 
-            font-weight: bold;
-          }
-          .summary-table {
-            width: 100%;
-            border-collapse: collapse;
-          }
-          .summary-table td {
-            padding: 5px 10px;
-            border: 1px solid #ddd;
-          }
-          .total-section { 
-            margin-top: 20px; 
-            padding: 15px; 
-            background-color: #f9f9f9; 
-            border: 1px solid #ddd;
-            text-align: center;
-          }
-          .total-section h3 {
-            margin-top: 0;
-            color: #333;
-          }
-          .net-pay { 
-            font-size: 18px; 
-            font-weight: bold; 
-            text-align: center; 
-            margin: 20px 0; 
-            padding: 15px;
-            background-color: #e8f4f8;
-            border: 2px solid #007bff;
-            border-radius: 5px;
-          }
-          .footer { 
-            text-align: center; 
-            margin-top: 30px; 
-            font-style: italic; 
-            font-size: 12px;
-            color: #666;
-          }
-          .amount-words {
-            font-size: 16px;
-            margin-top: 10px;
-            font-weight: normal;
-          }
-          @media print {
-            body { margin: 0; }
-            .no-print { display: none; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <p>Powered by Simplify payroll and compliance. Visit zoho.com/payroll</p>
+  const generatePayslipHTML = (salary) => {
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Salary Slip</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .details { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .earnings, .deductions { width: 48%; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; text-align: left; border: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+        .total { font-weight: bold; background-color: #e8f5e8; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>SALARY SLIP</h1>
+        <p>Pay Period: ${formatDate(salary.payDate)}</p>
+    </div>
+    
+    <div class="details">
+        <div>
+            <p><strong>Employee Name:</strong> ${getEmployeeName(salary)}</p>
+            <p><strong>Employee ID:</strong> ${getEmployeeDisplay(salary)}</p>
         </div>
+        <div>
+            <p><strong>Pay Date:</strong> ${formatDate(salary.payDate)}</p>
+            <p><strong>Paid Days:</strong> ${salary.paidDays || 'N/A'}</p>
+        </div>
+    </div>
+
+    <table>
+        <tr><th colspan="2">EARNINGS</th><th colspan="2">DEDUCTIONS</th></tr>
+        <tr>
+            <td>Basic Salary</td>
+            <td>${formatCurrency(salary.basicSalary)}</td>
+            <td>Professional Tax</td>
+            <td>${formatCurrency(salary.professionalTaxes)}</td>
+        </tr>
+        <tr>
+            <td>Allowances</td>
+            <td>${formatCurrency(salary.allowances)}</td>
+            <td>Income Tax</td>
+            <td>${formatCurrency(salary.incomeTaxes)}</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td>PF</td>
+            <td>${formatCurrency(salary.pF)}</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td></td>
+            <td>Medical Fund</td>
+            <td>${formatCurrency(salary.medicalFund)}</td>
+        </tr>
+        <tr class="total">
+            <td>Gross Earnings</td>
+            <td>${formatCurrency(salary.grossEarning)}</td>
+            <td>Total Deductions</td>
+            <td>${formatCurrency(salary.deductions)}</td>
+        </tr>
+        <tr class="total">
+            <td colspan="3"><strong>NET SALARY</strong></td>
+            <td><strong>${formatCurrency(salary.netSalary)}</strong></td>
+        </tr>
+    </table>
+</body>
+</html>`;
+  };
+
+  const handleDownloadPayslip = (salary) => {
+    const element = document.createElement('a');
+    const payslipContent = generatePayslipHTML(salary);
+    const file = new Blob([payslipContent], { type: 'text/html' });
+    element.href = URL.createObjectURL(file);
+    
+    const employeeName = getEmployeeName(salary).replace(/[^a-zA-Z0-9]/g, '_');
+    const employeeId = getEmployeeDisplay(salary);
+    const payDate = formatDate(salary.payDate).replace(/[^a-zA-Z0-9]/g, '_');
+    
+    element.download = `payslip-${employeeId}-${employeeName}-${payDate}.html`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  const handleViewPayslip = (salary) => {
+    setSelectedSalary(salary);
+    setShowPayslip(true);
+  };
+
+  // FIXED: The key change is here - this function now handles both admin and employee access properly
+  const fetchSalaries = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Authentication token not found");
+      }
+
+      let apiUrl;
+      
+      // KEY FIX: Check if ID exists (admin access) or not (employee access)
+      if (id) {
+        // Admin accessing specific employee salary
+        apiUrl = `${baseURL}/api/salary/${id}`;
+        console.log("Admin access - fetching salary for employee ID:", id);
+      } else {
+        // Employee accessing their own salary - use my-salary endpoint
+        apiUrl = `${baseURL}/api/salary/my-salary`;
+        console.log("Employee access - fetching own salary");
+      }
+
+      console.log("Calling API:", apiUrl);
+
+      const response = await axios.get(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("API Response:", response.data);
+
+      if (response.data.success) {
+        let salaryData = response.data.salary || response.data.data || response.data.salaries || [];
         
-        <div class="company-info">
-          <h2>Quore B2b Private Limited</h2>
-          <p>Marvel Fuego Office no 7140 seventh floor, Magarpatta road Hadapsar Pune India</p>
-        </div>
+        if (!Array.isArray(salaryData)) {
+          salaryData = [salaryData];
+        }
+        
+        console.log("Salary data received:", salaryData);
+        
+        setSalaries(salaryData);
+        setFilteredSalaries(salaryData);
+        
+        if (salaryData.length === 0) {
+          console.warn("No salary records found");
+          setError("No salary records found for this employee.");
+        }
+      } else {
+        throw new Error(response.data.message || "Failed to fetch salary data");
+      }
+    } catch (error) {
+      console.error("Error fetching salaries:", error);
+      
+      let errorMessage = "An error occurred while fetching salaries";
+      
+      if (error.response) {
+        console.log("Error status:", error.response.status);
+        console.log("Error data:", error.response.data);
+        
+        if (error.response.status === 401) {
+          errorMessage = "Authentication failed. Please login again.";
+        } else if (error.response.status === 403) {
+          errorMessage = "You don't have permission to view this data.";
+        } else if (error.response.status === 404) {
+          errorMessage = "No salary records found.";
+        } else {
+          errorMessage = error.response.data?.message || errorMessage;
+        }
+      } else if (error.request) {
+        errorMessage = "Network error. Please check your connection.";
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      setError(errorMessage);
+      setSalaries([]);
+      setFilteredSalaries([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [baseURL, id, user]);
 
-        <div class="employee-summary">
-          <h3>EMPLOYEE SUMMARY</h3>
-          <table class="summary-table">
-            <tr>
-              <td><strong>Employee Name</strong></td>
-              <td>${salary.employeeId.name || salary.employeeId.employeeId}</td>
-              <td><strong>Employee ID</strong></td>
-              <td>${salary.employeeId.employeeId}</td>
-            </tr>
-            <tr>
-              <td><strong>Pay Period</strong></td>
-              <td>${payPeriod}</td>
-              <td><strong>Pay Date</strong></td>
-              <td>${payDate}</td>
-            </tr>
-            <tr>
-              <td colspan="2"><strong>Total Net Pay</strong></td>
-              <td colspan="2"><strong>Rs.${parseFloat(salary.netSalary).toFixed(2)}</strong></td>
-            </tr>
-            <tr>
-              <td><strong>Paid Days</strong></td>
-              <td>31</td>
-              <td><strong>LOP Days</strong></td>
-              <td>0</td>
-            </tr>
-          </table>
-        </div>
+  useEffect(() => {
+    // Add a small delay to ensure user context is loaded
+    const timeoutId = setTimeout(() => {
+      fetchSalaries();
+    }, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [fetchSalaries]);
 
-        <div class="pay-details">
-          <div class="earnings">
-            <h4>EARNINGS</h4>
-            <table class="table">
-              <tr>
-                <td>Basic</td>
-                <td>Rs.${parseFloat(salary.basicSalary).toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td>Allowances</td>
-                <td>Rs.${parseFloat(salary.allowances).toFixed(2)}</td>
-              </tr>
-            </table>
-            <table class="table">
-              <tr style="background-color: #f0f0f0;">
-                <td><strong>Gross Earnings</strong></td>
-                <td><strong>Rs.${(parseFloat(salary.basicSalary) + parseFloat(salary.allowances)).toFixed(2)}</strong></td>
-              </tr>
-            </table>
-          </div>
+  const handleSearch = useCallback((query) => {
+    setSearchQuery(query);
+    
+    if (!query.trim()) {
+      setFilteredSalaries(salaries);
+      return;
+    }
 
-          <div class="deductions">
-            <h4>DEDUCTIONS</h4>
-            <table class="table">
-              <tr>
-                <td>Income Tax</td>
-                <td>Rs.0.00</td>
-              </tr>
-              <tr>
-                <td>Provident Fund</td>
-                <td>Rs.0.00</td>
-              </tr>
-              <tr>
-                <td>Other Deductions</td>
-                <td>Rs.${parseFloat(salary.deductions).toFixed(2)}</td>
-              </tr>
-            </table>
-            <table class="table">
-              <tr style="background-color: #f0f0f0;">
-                <td><strong>Total Deductions</strong></td>
-                <td><strong>Rs.${parseFloat(salary.deductions).toFixed(2)}</strong></td>
-              </tr>
-            </table>
-          </div>
-        </div>
+    const searchTerm = query.toLowerCase().trim();
+    const filteredRecords = salaries.filter((salary) => {
+      const employeeId = String(getEmployeeDisplay(salary)).toLowerCase();
+      const employeeName = getEmployeeName(salary).toLowerCase();
+      const payDate = salary.payDate ? new Date(salary.payDate).toLocaleDateString() : "";
+      
+      return (
+        employeeId.includes(searchTerm) ||
+        employeeName.includes(searchTerm) ||
+        payDate.includes(searchTerm)
+      );
+    });
+    
+    setFilteredSalaries(filteredRecords);
+  }, [salaries]);
 
-        <div class="total-section">
-          <h3>TOTAL NET PAYABLE</h3>
-          <p>Gross Earnings - Total Deductions</p>
-          <p style="font-size: 20px; font-weight: bold; margin: 10px 0;">Rs.${parseFloat(salary.netSalary).toFixed(2)}</p>
-        </div>
-
-        <div class="net-pay">
-          <div class="amount-words">
-            Amount In Words: Indian Rupee ${convertToWords(salary.netSalary)} Only
-          </div>
-        </div>
-
-        <div class="footer">
-          -- This is a system-generated document. --
-        </div>
-
-        <div class="no-print" style="text-align: center; margin-top: 20px;">
-          <button onclick="window.print()" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">Print PDF</button>
-          <button onclick="window.close()" style="padding: 10px 20px; background-color: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
-        </div>
-      </body>
-      </html>
-    `;
-
-    printWindow.document.write(pdfContent);
-    printWindow.document.close();
+  const generateCSV = (data) => {
+    const headers = [
+      'S.No', 'Employee Name', 'Employee ID', 'Basic Salary', 'Allowances', 
+      'Gross Earning', 'PF', 'Medical Fund', 'Professional Tax', 'Income Tax',
+      'Total Deductions', 'Net Salary', 'Paid Days', 'Loop Days', 'Pay Date'
+    ];
+    
+    const csvRows = [
+      headers.join(','),
+      ...data.map((salary, index) => [
+        index + 1,
+        `"${getEmployeeName(salary)}"`,
+        `"${getEmployeeDisplay(salary)}"`,
+        salary.basicSalary || 0,
+        salary.allowances || 0,
+        salary.grossEarning || 0,
+        salary.pF || 0,
+        salary.medicalFund || 0,
+        salary.professionalTaxes || 0,
+        salary.incomeTaxes || 0,
+        salary.deductions || 0,
+        salary.netSalary || 0,
+        salary.paidDays || 0,
+        salary.loopDays || 0,
+        `"${formatDate(salary.payDate)}"`
+      ].join(','))
+    ];
+    
+    return csvRows.join('\n');
   };
 
-  // Simple number to words conversion
-  const convertToWords = (num) => {
-    const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
-    const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-
-    const convert = (n) => {
-      if (n === 0) return '';
-      if (n < 10) return ones[n];
-      if (n < 20) return teens[n - 10];
-      if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + ones[n % 10] : '');
-      if (n < 1000) return ones[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + convert(n % 100) : '');
-      if (n < 100000) return convert(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + convert(n % 1000) : '');
-      return 'Number too large';
-    };
-
-    const n = parseInt(num);
-    if (n === 0) return 'Zero';
-    return convert(n);
+  const downloadFile = (content, filename, type) => {
+    const element = document.createElement('a');
+    const file = new Blob([content], { type });
+    element.href = URL.createObjectURL(file);
+    element.download = filename;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
   };
+
+  const retryFetch = () => {
+    fetchSalaries();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-teal-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading salary history...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center max-w-md">
+          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Error Loading Data</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={retryFetch}
+            className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-md transition duration-200"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      {filteredSalaries === null ? (
-        <div>Loading ...</div>
-      ) : (
-        <div className="overflow-x-auto p-5">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold">Salary History</h2>
+    <div className="p-5">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="text-center mb-4">
+          <h2 className="text-3xl font-bold text-gray-800">
+            {id ? 'Employee Salary History' : 'My Salary History'}
+          </h2>
+          {user && (
+            <p className="text-gray-600 mt-1">
+              {id 
+                ? `Employee ID: ${id} | Total Records: ${filteredSalaries.length}`
+                : `Welcome ${user.name || 'Employee'} | Total Records: ${filteredSalaries.length}`
+              }
+            </p>
+          )}
+        </div>
+
+        {/* Summary Cards */}
+        {filteredSalaries.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-lg shadow-lg">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-blue-100 text-sm font-medium">Total Records</p>
+                  <p className="text-3xl font-bold">{filteredSalaries.length}</p>
+                </div>
+                <div className="text-blue-200">
+                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-lg shadow-lg">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-green-100 text-sm font-medium">Total Paid</p>
+                  <p className="text-xl font-bold">
+                    {formatCurrency(filteredSalaries.reduce((sum, salary) => sum + parseFloat(salary.netSalary || 0), 0))}
+                  </p>
+                </div>
+                <div className="text-green-200">
+                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-lg shadow-lg">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-purple-100 text-sm font-medium">Average Salary</p>
+                  <p className="text-xl font-bold">
+                    {formatCurrency(filteredSalaries.reduce((sum, salary) => sum + parseFloat(salary.netSalary || 0), 0) / filteredSalaries.length)}
+                  </p>
+                </div>
+                <div className="text-purple-200">
+                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-lg shadow-lg">
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-orange-100 text-sm font-medium">Latest Payment</p>
+                  <p className="text-sm font-bold">
+                    {formatDate(new Date(Math.max(...filteredSalaries.map(s => new Date(s.payDate || 0).getTime()))))}
+                  </p>
+                </div>
+                <div className="text-orange-200">
+                  <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex justify-end my-3">
-            <input
-              type="text"
-              placeholder="Search By Emp ID"
-              className="border px-2 rounded-md py-0.5 border-gray-300"
-              onChange={filterSalaries}
-            />
-          </div>
-          {filteredSalaries.length > 0 ? (
-            <table className="w-full text-sm text-left text-gray-500">
-              <thead className="text-xs text-gray-700 uppercase bg-gray-50 border border-gray-200">
-                <tr>
-                  <th className="px-6 py-3">SNO</th>
-                  <th className="px-6 py-3">Emp ID</th>
-                  <th className="px-6 py-3">Salary</th>
-                  <th className="px-6 py-3">Allowance</th>
-                  <th className="px-6 py-3">Deduction</th>
-                  <th className="px-6 py-3">Total</th>
-                  <th className="px-6 py-3">Pay Date</th>
-                  <th className="px-6 py-3">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredSalaries.map((salary) => (
-                  <tr
-                    key={salary.id}
-                    className="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
+        )}
+
+        {/* Search and Actions Bar */}
+        {(id || filteredSalaries.length > 0) && (
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+            <div className="flex-1 max-w-md">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search by Employee ID, Name, or Date..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                {searchQuery && (
+                  <button
+                    onClick={() => handleSearch("")}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   >
-                    <td className="px-6 py-3">{sno++}</td>
-                    <td className="px-6 py-3">{salary.employeeId.employeeId}</td>
-                    <td className="px-6 py-3">{salary.basicSalary}</td>
-                    <td className="px-6 py-3">{salary.allowances}</td>
-                    <td className="px-6 py-3">{salary.deductions}</td>
-                    <td className="px-6 py-3">{salary.netSalary}</td>
-                    <td className="px-6 py-3">
-                      {new Date(salary.payDate).toLocaleDateString()}
+                    <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <button
+                onClick={retryFetch}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md transition duration-200 flex items-center gap-2"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Refresh
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Salary Table */}
+      {filteredSalaries.length > 0 ? (
+        <div className="overflow-x-auto shadow-lg rounded-lg">
+          <table className="w-full text-sm text-left bg-white">
+            <thead className="text-xs text-gray-700 uppercase bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+              <tr>
+                <th className="px-6 py-4 font-semibold">S.No</th>
+                <th className="px-6 py-4 font-semibold">Employee Name</th>
+                {id && <th className="px-6 py-4 font-semibold">Employee ID</th>}
+                <th className="px-6 py-4 font-semibold">Basic Salary</th>
+                <th className="px-6 py-4 font-semibold">Allowances</th>
+                <th className="px-6 py-4 font-semibold">Gross Earning</th>
+                <th className="px-6 py-4 font-semibold">PF</th>
+                <th className="px-6 py-4 font-semibold">Medical Fund</th>
+                <th className="px-6 py-4 font-semibold">Professional Tax</th>
+                <th className="px-6 py-4 font-semibold">Income Tax</th>
+                <th className="px-6 py-4 font-semibold">Total Deductions</th>
+                <th className="px-6 py-4 font-semibold">Net Salary</th>
+                <th className="px-6 py-4 font-semibold">Paid Days</th>
+                <th className="px-6 py-4 font-semibold">Loop Days</th>
+                <th className="px-6 py-4 font-semibold">Pay Date</th>
+                <th className="px-6 py-4 font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredSalaries.map((salary, index) => (
+                <tr
+                  key={salary._id || salary.id || index}
+                  className={`border-b hover:bg-gray-50 transition-colors ${
+                    index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
+                  }`}
+                >
+                  <td className="px-6 py-4 font-medium text-gray-900">
+                    {index + 1}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="font-medium text-gray-900">
+                      {getEmployeeName(salary)}
+                    </div>
+                  </td>
+                  {id && (
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-gray-900">
+                        {getEmployeeDisplay(salary)}
+                      </div>
                     </td>
-                    <td className="px-6 py-3">
+                  )}
+                  <td className="px-6 py-4 font-medium">
+                    {formatCurrency(salary.basicSalary)}
+                  </td>
+                  <td className="px-6 py-4 text-green-600 font-medium">
+                    {formatCurrency(salary.allowances)}
+                  </td>
+                  <td className="px-6 py-4 font-semibold text-blue-600">
+                    {formatCurrency(salary.grossEarning)}
+                  </td>
+                  <td className="px-6 py-4 text-red-600 font-medium">
+                    {formatCurrency(salary.pF)}
+                  </td>
+                  <td className="px-6 py-4 text-red-600 font-medium">
+                    {formatCurrency(salary.medicalFund)}
+                  </td>
+                  <td className="px-6 py-4 text-red-600 font-medium">
+                    {formatCurrency(salary.professionalTaxes)}
+                  </td>
+                  <td className="px-6 py-4 text-red-600 font-medium">
+                    {formatCurrency(salary.incomeTaxes)}
+                  </td>
+                  <td className="px-6 py-4 text-red-600 font-medium">
+                    {formatCurrency(salary.deductions)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="font-bold text-lg text-green-700 bg-green-50 px-3 py-1 rounded-full">
+                      {formatCurrency(salary.netSalary)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">
+                    {salary.paidDays || 'N/A'}
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">
+                    {salary.loopDays || '0'}
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">
+                    {formatDate(salary.payDate)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex gap-2">
                       <button
-                        onClick={() => generatePDF(salary)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs"
+                        onClick={() => handleViewPayslip(salary)}
+                        className="text-blue-600 hover:text-blue-800 p-1 rounded bg-blue-50 hover:bg-blue-100"
+                        title="View Salary Slip"
                       >
-                        View
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div>No Records</div>
+                      <button
+                        onClick={() => handleDownloadPayslip(salary)}
+                        className="text-green-600 hover:text-green-800 p-1 rounded bg-green-50 hover:bg-green-100"
+                        title="Download Payslip"
+                      >
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <div className="text-gray-400 text-6xl mb-4">📄</div>
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">No Salary Records Found</h3>
+          <p className="text-gray-500 mb-4">
+            {searchQuery 
+              ? `No records match your search for "${searchQuery}"` 
+              : "No salary records are available"
+            }
+          </p>
+          {searchQuery && (
+            <button
+              onClick={() => handleSearch("")}
+              className="text-teal-600 hover:text-teal-800 font-medium"
+            >
+              Clear search and show all records
+            </button>
           )}
         </div>
       )}
-    </>
+
+      {/* Additional Statistics Cards */}
+      {filteredSalaries.length > 0 && (
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Salary Breakdown</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Highest Salary:</span>
+                <span className="font-semibold text-green-600">
+                  {formatCurrency(Math.max(...filteredSalaries.map(s => parseFloat(s.netSalary || 0))))}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Lowest Salary:</span>
+                <span className="font-semibold text-red-600">
+                  {formatCurrency(Math.min(...filteredSalaries.map(s => parseFloat(s.netSalary || 0))))}
+                </span>
+              </div>
+              <div className="flex justify-between border-t pt-2">
+                <span className="text-gray-600">Difference:</span>
+                <span className="font-semibold text-blue-600">
+                  {formatCurrency(
+                    Math.max(...filteredSalaries.map(s => parseFloat(s.netSalary || 0))) - 
+                    Math.min(...filteredSalaries.map(s => parseFloat(s.netSalary || 0)))
+                  )}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Deduction Analysis</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Total PF:</span>
+                <span className="font-semibold">
+                  {formatCurrency(filteredSalaries.reduce((sum, s) => sum + parseFloat(s.pF || 0), 0))}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Total Tax:</span>
+                <span className="font-semibold">
+                  {formatCurrency(filteredSalaries.reduce((sum, s) => 
+                    sum + parseFloat(s.professionalTaxes || 0) + parseFloat(s.incomeTaxes || 0), 0
+                  ))}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Medical Fund:</span>
+                <span className="font-semibold">
+                  {formatCurrency(filteredSalaries.reduce((sum, s) => sum + parseFloat(s.medicalFund || 0), 0))}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Attendance Summary</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Avg. Paid Days:</span>
+                <span className="font-semibold text-green-600">
+                  {(filteredSalaries.reduce((sum, s) => sum + parseFloat(s.paidDays || 0), 0) / filteredSalaries.length).toFixed(1)} days
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Total Loop Days:</span>
+                <span className="font-semibold text-red-600">
+                  {filteredSalaries.reduce((sum, s) => sum + parseFloat(s.loopDays || 0), 0)} days
+                </span>
+              </div>
+              <div className="flex justify-between border-t pt-2">
+                <span className="text-gray-600">Attendance Rate:</span>
+                <span className="font-semibold text-blue-600">
+                  {(
+                    (filteredSalaries.reduce((sum, s) => sum + parseFloat(s.paidDays || 0), 0) / 
+                    (filteredSalaries.length * 30)) * 100
+                  ).toFixed(1)}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Options */}
+      {filteredSalaries.length > 0 && (
+        <div className="mt-6 flex flex-wrap gap-3 justify-center">
+          <button
+            onClick={() => {
+              const csvContent = generateCSV(filteredSalaries);
+              downloadFile(csvContent, 'salary-data.csv', 'text/csv');
+            }}
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md flex items-center gap-2 transition duration-200"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+            </svg>
+            Export CSV
+          </button>
+          
+          <button
+            onClick={() => {
+              window.print();
+            }}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md flex items-center gap-2 transition duration-200"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Print Report
+          </button>
+
+          <button
+            onClick={() => {
+              filteredSalaries.forEach(salary => handleDownloadPayslip(salary));
+            }}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md flex items-center gap-2 transition duration-200"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Download All Payslips
+          </button>
+        </div>
+      )}
+
+      {/* Payslip Modal */}
+      {showPayslip && selectedSalary && (
+        <PayslipModal 
+          salary={selectedSalary} 
+          onClose={() => setShowPayslip(false)}
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
+          getEmployeeName={getEmployeeName}
+          getEmployeeDisplay={getEmployeeDisplay}
+          handleDownloadPayslip={handleDownloadPayslip}
+        />
+      )}
+    </div>
   );
 };
 
