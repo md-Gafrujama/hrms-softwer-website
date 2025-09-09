@@ -24,7 +24,7 @@ router.get('/inactive', authMiddleware, inActiveEmployee);
 router.get('/', authMiddleware, getEmployees)
 router.post("/add", authMiddleware, upload.single('image'), uploadToCloudinary,addEmployee);
 router.get('/:id', authMiddleware, getEmployee)
-router.put('/:id', authMiddleware, updateEmployee)
+router.put('/:id', authMiddleware, upload.single('image'), uploadToCloudinary, updateEmployee)
 router.get('/department/:id', authMiddleware, fetchEmployeesByDepId)
 router.delete('/:id', authMiddleware, deleteEmployee)
 

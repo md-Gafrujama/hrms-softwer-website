@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Base theme styles */
+/* :root {
+  color-scheme: light dark;
+}
+
+html {
+  @apply bg-gray-50 text-gray-900;
+}
+
+html.dark {
+  @apply bg-gray-900 text-gray-100;
+} */
+
+/* Smooth theme transition */
+* {
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}

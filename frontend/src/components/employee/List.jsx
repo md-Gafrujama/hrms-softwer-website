@@ -16,6 +16,19 @@ const List = () => {
     const [statusFilter, setStatusFilter] = useState('all')
     const [cardCounts, setCardCounts] = useState({ total: 0, active: 0, onLeave: 0, departments: 0 })
 
+    const handleDeleted = (deletedId) => {
+      setEmployeesRaw((prev) => {
+        const next = prev.filter((e) => e._id !== deletedId)
+        setCardCounts((curr) => ({
+          ...curr,
+          total: next.length,
+          active: next.filter((e) => (e.status || '').toLowerCase() === 'active').length,
+          departments: new Set(next.map(e => e?.department?.dep_name).filter(Boolean)).size,
+        }))
+        return next
+      })
+    }
+
     const mapEmployeeToRow = (emp, index) => ({
       _id: emp._id,
       sno: index + 1,
@@ -23,7 +36,7 @@ const List = () => {
       name: emp?.userId?.name || emp?.employeeName || '-',
       dob: emp?.dob ? new Date(emp.dob).toLocaleDateString() : '-',
       profileImage: <img width={40} className='rounded-full' src={`${baseURL}/${emp?.userId?.profileImage || ''}`} />,
-      action: (<EmployeeButtons Id={emp._id} />),
+      action: (<EmployeeButtons Id={emp._id} onDeleted={handleDeleted} />),
     })
 
     useEffect(() => {

@@ -7,10 +7,14 @@ const baseUrl = import.meta.env.VITE_API_URL;
 const Edit = () => {
   const [employee, setEmployee] = useState({
     name: "",
+    email: "",
     maritalStatus: "",
     designation: "",
     salary: 0,
     department: "",
+    role: "",
+    status: "",
+    image: null,
   });
   const [departments, setDepartments] = useState(null);
   const navigate = useNavigate();
@@ -40,10 +44,14 @@ const Edit = () => {
           setEmployee((prev) => ({
             ...prev,
             name: employee.userId.name,
-            maritalStatus: employee.maritalStatus,
-            designation: employee.designation,
-            salary: employee.salary,
-            department: employee.department
+            email: employee.userId.email || "",
+            maritalStatus: employee.maritalStatus || "",
+            designation: employee.designation || "",
+            salary: employee.salary || 0,
+            department: employee.department || "",
+            role: employee.userId.role || "",
+            status: employee.status || employee.userId.status || "",
+            image: null,
           }));
         }
       } catch (error) {
@@ -57,17 +65,27 @@ const Edit = () => {
   }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setEmployee((prevData) => ({ ...prevData, [name]: value }));
+    const { name, value, files } = e.target;
+    if (name === 'image') {
+      setEmployee((prevData) => ({ ...prevData, image: files && files[0] ? files[0] : null }));
+    } else {
+      setEmployee((prevData) => ({ ...prevData, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      const formData = new FormData();
+      Object.entries(employee).forEach(([k, v]) => {
+        if (v !== null && v !== undefined && v !== "") {
+          formData.append(k, v);
+        }
+      });
       const response = await axios.put(
         `${baseUrl}/api/employee/${id}`,
-        employee,
+        formData,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -102,6 +120,22 @@ const Edit = () => {
                   value={employee.name}
                   onChange={handleChange}
                   placeholder="Insert Name"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                  required
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={employee.email}
+                  onChange={handleChange}
+                  placeholder="Insert Email"
                   className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
                   required
                 />
@@ -159,7 +193,7 @@ const Edit = () => {
               </div>
 
               {/* Department */}
-              <div className="col-span-2">
+              <div >
                 <label className="block text-sm font-medium text-gray-700">
                   Department
                 </label>
@@ -177,6 +211,50 @@ const Edit = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {/* Role */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Role</label>
+                <select
+                  name="role"
+                  value={employee.role}
+                  onChange={handleChange}
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                  required
+                >
+                  <option value="">Select Role</option>
+                  <option value="admin">Admin</option>
+                  <option value="employee">Employee</option>
+                </select>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <select
+                  name="status"
+                  value={employee.status}
+                  onChange={handleChange}
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                  required
+                >
+                  <option value="">Select Status</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+
+              {/* Image Upload */}
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700">Upload Image</label>
+                <input
+                  type="file"
+                  name="image"
+                  onChange={handleChange}
+                  accept="image/*"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+                />
               </div>
             </div>
 

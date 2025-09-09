@@ -15,6 +15,7 @@
 import React from 'react'
 import { FaBars, FaTimes } from "react-icons/fa";
 import { useAuth } from '../../context/AuthContext.jsx'
+import ThemeToggle from './ThemeToggle.jsx'
 
 const Navbar = ({ isMobileMenuOpen, setIsMobileMenuOpen, isSidebarCollapsed, setIsSidebarCollapsed }) => {
     const { user, logout } = useAuth()
@@ -34,7 +35,7 @@ const Navbar = ({ isMobileMenuOpen, setIsMobileMenuOpen, isSidebarCollapsed, set
     };
     
     return (
-        <div className='flex items-center text-white justify-between h-16 bg-gradient-to-r from-teal-600 to-teal-700 px-6 shadow-lg fixed top-0 left-0 right-0 z-50 border-b border-teal-500/20'>
+        <div className='flex items-center text-white justify-between h-16 bg-gradient-to-r from-teal-600 to-teal-700 dark:from-gray-800 dark:to-gray-900 px-6 shadow-lg fixed top-0 left-0 right-0 z-50 border-b border-teal-500/20 dark:border-gray-700'>
             {/* Left Section - Hamburger Menu & Welcome */}
             <div className='flex items-center space-x-4'>
                 {/* Hamburger Menu Button - Always visible */}
@@ -50,10 +51,10 @@ const Navbar = ({ isMobileMenuOpen, setIsMobileMenuOpen, isSidebarCollapsed, set
                 
                 {/* Welcome message - enhanced styling */}
                 <div className='flex flex-col'>
-                    <p className='text-xs text-teal-100 font-medium uppercase tracking-wide'>
+                    <p className='text-xs text-teal-100 dark:text-gray-300 font-medium uppercase tracking-wide'>
                         Welcome back
                     </p>
-                    <p className='text-lg font-semibold text-white truncate max-w-[200px] sm:max-w-[300px]'>
+                    <p className='text-lg font-semibold text-white dark:text-gray-100 truncate max-w-[200px] sm:max-w-[300px]'>
                         {user.name}
                     </p>
                 </div>
@@ -61,9 +62,10 @@ const Navbar = ({ isMobileMenuOpen, setIsMobileMenuOpen, isSidebarCollapsed, set
             
             {/* Right Section - User Actions */}
             <div className='flex items-center space-x-3'>
+                <ThemeToggle />
                 {/* User Avatar/Initial */}
-                <div className='hidden sm:flex items-center justify-center w-10 h-10 bg-teal-500/20 rounded-full border border-teal-300/30'>
-                    <span className='text-teal-100 font-semibold text-sm'>
+                <div className='hidden sm:flex items-center justify-center w-10 h-10 bg-teal-500/20 dark:bg-gray-700/40 rounded-full border border-teal-300/30 dark:border-gray-600'>
+                    <span className='text-teal-100 dark:text-gray-200 font-semibold text-sm'>
                         {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                     </span>
                 </div>
@@ -71,7 +73,7 @@ const Navbar = ({ isMobileMenuOpen, setIsMobileMenuOpen, isSidebarCollapsed, set
                 {/* Logout button - enhanced styling */}
                 <button 
                     type="button"
-                    className='group relative px-4 py-2 sm:px-5 sm:py-2 text-sm font-medium bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-300 flex-shrink-0 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-white/30 border border-white/20'
+                    className='group relative px-4 py-2 sm:px-5 sm:py-2 text-sm font-medium bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all duration-300 flex-shrink-0 shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-white/30 border border-white/20 dark:bg-gray-700/40 dark:hover:bg-gray-700/60 dark:border-gray-600'
                     onClick={logout}
                 >
                     <span className='flex items-center space-x-2'>

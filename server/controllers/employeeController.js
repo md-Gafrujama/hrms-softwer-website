@@ -277,45 +277,40 @@ const getEmployee = async (req, res) => {
 const updateEmployee = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, maritalStatus, designation, department, salary } = req.body;
+    const { name, email, maritalStatus, designation, department, salary, role, status } = req.body;
 
     const employee = await Employee.findById({ _id: id });
     if (!employee) {
-      return res
-        .status(404)
-        .json({ success: false, error: "employee not found" });
+      return res.status(404).json({ success: false, error: "employee not found" });
     }
     const user = await User.findById({ _id: employee.userId });
-
     if (!user) {
       return res.status(404).json({ success: false, error: "user not found" });
     }
 
-    const updateUser = await User.findByIdAndUpdate(
-      { _id: employee.userId },
-      { name }
-    );
-    const updateEmployee = await Employee.findByIdAndUpdate(
-      { _id: id },
-      {
-        maritalStatus,
-        designation,
-        salary,
-        department,
-      }
-    );
+    const userUpdateData = {};
+    if (name) userUpdateData.name = name;
+    if (email) userUpdateData.email = email;
+    if (role) userUpdateData.role = role;
+    if (status) userUpdateData.status = status;
+    if (req.cloudinaryUrl) userUpdateData.profileImage = req.cloudinaryUrl;
 
-    if (!updateEmployee || !updateUser) {
-      return res
-        .status(404)
-        .json({ success: false, error: "document not found" });
-    }
+    const employeeUpdateData = {};
+    if (maritalStatus) employeeUpdateData.maritalStatus = maritalStatus;
+    if (designation) employeeUpdateData.designation = designation;
+    if (salary !== undefined) employeeUpdateData.salary = salary;
+    if (department) employeeUpdateData.department = department;
+    if (status) employeeUpdateData.status = status;
 
-    return res.status(200).json({ success: true, message: "employee update" });
+    const [updatedUser, updatedEmployee] = await Promise.all([
+      Object.keys(userUpdateData).length ? User.findByIdAndUpdate({ _id: employee.userId }, userUpdateData, { new: true }) : Promise.resolve(user),
+      Object.keys(employeeUpdateData).length ? Employee.findByIdAndUpdate({ _id: id }, employeeUpdateData, { new: true }) : Promise.resolve(employee),
+    ]);
+
+    return res.status(200).json({ success: true, message: "employee update", user: updatedUser, employee: updatedEmployee });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ success: false, error: "update employees server error" });
+    console.error(error);
+    return res.status(500).json({ success: false, error: "update employees server error" });
   }
 };
 

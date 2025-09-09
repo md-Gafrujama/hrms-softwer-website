@@ -82,8 +82,30 @@ export const getEmployees = async (id) => {
   return employees;
 };
 
-export const EmployeeButtons = ({ Id }) => {
+//    delete employee
+export const EmployeeButtons = ({ Id, onDeleted }) => {
   const navigate = useNavigate();
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm("Are you sure you want to delete this employee?");
+    if (!confirmed) return;
+    try {
+      const response = await axios.delete(`${baseURL}/api/employee/${Id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      if (response?.data?.success) {
+        alert("Employee deleted successfully");
+        if (typeof onDeleted === 'function') onDeleted(Id);
+      } else {
+        alert(response?.data?.error || "Failed to delete employee");
+      }
+    } catch (error) {
+      const msg = error?.response?.data?.error || error?.message || "Something went wrong";
+      alert(msg);
+    }
+  };
 
   return (
     <div className="flex space-x-3">
@@ -104,6 +126,12 @@ export const EmployeeButtons = ({ Id }) => {
       >Salary</button>
       <button className="px-3 py-1 bg-red-600 text-white"
       onClick={() => navigate(`/admin-dashboard/employees/leaves/${Id}`)}>Leave</button>
+      <button
+        className="px-3 py-1 bg-rose-700 text-white"
+        onClick={handleDelete}
+      >
+        Delete
+      </button>
     </div>
   );
 };
