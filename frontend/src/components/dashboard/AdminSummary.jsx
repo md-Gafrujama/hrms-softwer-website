@@ -147,9 +147,9 @@ const AdminSummary = () => {
         console.log('Active Employees:', activeEmployees.data)
         console.log('Inactive Employees:', inactiveEmployees.data)
 
-        // Count employees and handle empty arrays
-        const activeCount = Array.isArray(activeEmployees.data) ? activeEmployees.data.length : 0;
-        const inactiveCount = Array.isArray(inactiveEmployees.data) ? inactiveEmployees.data.length : 0;
+        // Use the count property from API response instead of array length
+        const activeCount = activeEmployees.data?.count || 0;
+        const inactiveCount = inactiveEmployees.data?.count || 0;
 
         console.log('Active employee count:', activeCount)
         console.log('Inactive employee count:', inactiveCount)

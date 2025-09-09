@@ -29,9 +29,13 @@ const Add = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Debug: Check what data is being sent
+    console.log('Form data before submission:', formData);
+
     const formDataObj = new FormData()
     Object.keys(formData).forEach((key) => {
         formDataObj.append(key, formData[key])
+        console.log(`Adding to FormData: ${key} = ${formData[key]}`);
     })
 
     try {
@@ -44,10 +48,12 @@ const Add = () => {
           },
         }
       );
+      console.log('Server response:', response.data);
       if (response.data.success) {
         navigate("/admin-dashboard/employees");
       }
     } catch (error) {
+      console.error('Error details:', error.response?.data);
       if (error.response && !error.response.data.success) {
         alert(error.response.data.error);
       }
@@ -204,6 +210,23 @@ const Add = () => {
               className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
               required
             />
+          </div>
+
+          {/* Status */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Status
+            </label>
+            <select
+              name="status"
+              onChange={handleChange}
+              className="mt-1 p-2 block w-full border border-gray-300 rounded-md"
+              required
+            >
+              <option value="">Select Status</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
           </div>
 
           {/* Password */}
