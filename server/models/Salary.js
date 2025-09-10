@@ -12,6 +12,7 @@ const salarySchema = new Schema({
     payDate: { type: Date, required: true },
     loopDays: {type:Number},
 
+    
     medicalFund : {type:Number,required:true},
     pF : {type:Number,required:true},
     allowances:  { type: Number },
