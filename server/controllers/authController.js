@@ -26,7 +26,7 @@ const login = async (req, res) => {
       .json({
         success: true, 
         token,
-        user: { _id: user._id, name: user.name, role: user.role },
+        user: { _id: user._id, name: user.name, role: user.role }, // send the user to localhost storage 
       });
   } catch (error) {
     res.status(500).json({success: false, error: error.message})

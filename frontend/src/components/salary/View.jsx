@@ -746,7 +746,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "../../context/authContext";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 // PayslipModal component
 const PayslipModal = ({ salary, onClose, formatCurrency, formatDate, getEmployeeName, getEmployeeDisplay, handleDownloadPayslip }) => (

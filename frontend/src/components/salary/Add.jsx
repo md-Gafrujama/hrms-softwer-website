@@ -610,7 +610,7 @@ const Add = () => {
                   type="number"
                   name="netSalary"
                   value={salary.netSalary}
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md bg-green-50 border-green-300 font-bold text-green-700"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md bg-green-50 font-bold text-green-700"
                   readOnly
                 />
               </div>
