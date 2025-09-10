@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { Schema } from "mongoose";
 
 const salarySchema = new Schema({
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    employeeId: { type: Schema.Types.ObjectId, ref: 'Employee', required: true },
     employeeName: {type: String, required :true},
   
     basicSalary: { type: Number, required: true },
