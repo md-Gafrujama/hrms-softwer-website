@@ -41,8 +41,8 @@ const View = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <img
-                src={`${baseURL}/${employee.userId.profileImage}`}
-                className="rounded-full border w-72"
+                src={`${(employee.userId.profileImage || '').startsWith('http') ? employee.userId.profileImage : baseURL + '/' + (employee.userId.profileImage || '')}`}
+                className="rounded-full border w-72 object-cover"
               />
             </div>
             <div>

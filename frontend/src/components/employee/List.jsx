@@ -29,15 +29,19 @@ const List = () => {
       })
     }
 
-    const mapEmployeeToRow = (emp, index) => ({
-      _id: emp._id,
-      sno: index + 1,
-      dep_name: emp?.department?.dep_name || '-',
-      name: emp?.userId?.name || emp?.employeeName || '-',
-      dob: emp?.dob ? new Date(emp.dob).toLocaleDateString() : '-',
-      profileImage: <img width={40} className='rounded-full' src={`${baseURL}/${emp?.userId?.profileImage || ''}`} />,
-      action: (<EmployeeButtons Id={emp._id} onDeleted={handleDeleted} />),
-    })
+    const mapEmployeeToRow = (emp, index) => {
+      const rawImg = emp?.userId?.profileImage || ''
+      const imgSrc = rawImg.startsWith('http') ? rawImg : (rawImg ? `${baseURL}/${rawImg}` : '')
+      return ({
+        _id: emp._id,
+        sno: index + 1,
+        dep_name: emp?.department?.dep_name || '-',
+        name: emp?.userId?.name || emp?.employeeName || '-',
+        dob: emp?.dob ? new Date(emp.dob).toLocaleDateString() : '-',
+        profileImage: imgSrc ? <img width={40} height={40} className='rounded-full object-cover' src={imgSrc} alt={emp?.userId?.name || 'avatar'} /> : <div className='w-10 h-10 rounded-full bg-gray-200' />,
+        action: (<EmployeeButtons Id={emp._id} onDeleted={handleDeleted} />),
+      })
+    }
 
     useEffect(() => {
       const fetchAll = async () => {
