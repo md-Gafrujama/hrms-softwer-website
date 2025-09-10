@@ -109,8 +109,9 @@ import {
   Title as ChartTitle,
   Tooltip,
   Legend,
+  ArcElement,
 } from 'chart.js'
-import { Bar } from 'react-chartjs-2'
+import { Bar, Pie } from 'react-chartjs-2'
 
 const baseURL = import.meta.env.VITE_API_URL;
 
@@ -128,7 +129,7 @@ import {
 import axios from 'axios'
 
 // Register Chart.js components once
-ChartJS.register(CategoryScale, LinearScale, BarElement, ChartTitle, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, BarElement, ChartTitle, Tooltip, Legend, ArcElement)
 
 const AdminSummary = () => {
   const [summary, setSummary] = useState(null)
@@ -222,65 +223,35 @@ const AdminSummary = () => {
           </p>
         </div>
 
-        {/* Main Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-16">
-          <SummaryCard
-            icon={<FaUsers />}
-            text="Total Employees"
-            number={summary.totalEmployees || 0}
-            color="bg-gradient-to-r from-teal-500 to-teal-600"
-          />
-          <SummaryCard
-            icon={<FaBuilding />}
-            text="Total Departments"
-            number={summary.totalDepartments || 0}
-            color="bg-gradient-to-r from-yellow-500 to-yellow-600"
-          />
+        {/* Dashboard Overview Section */}
+        <div className="mb-12 sm:mb-16">
+          <div className="text-center mb-8 sm:mb-10">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 dark:text-white mb-3">
+              Dashboard Overview
+            </h2>
+            <div className="w-20 sm:w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto rounded-full"></div>
+          </div>
           
-        </div>
-
-        {/* Organization Overview (moved above employee status) */}
-        <div className="mb-12 bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg p-4 h-64 sm:h-72 lg:h-80">
-          <Bar
-            options={{
-              responsive: true,
-              animation: false,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: false },
-                title: { display: true, text: 'Organization Overview' },
-              },
-              scales: {
-                x: {
-                  ticks: { color: '#9CA3AF' },
-                  grid: { color: 'rgba(156,163,175,0.15)' },
-                },
-                y: {
-                  ticks: { color: '#9CA3AF' },
-                  grid: { color: 'rgba(156,163,175,0.15)' },
-                  beginAtZero: true,
-                  precision: 0,
-                },
-              },
-            }}
-            data={{
-              labels: ['Departments', 'Employees'],
-              datasets: [
-                {
-                  label: 'Totals',
-                  data: [
-                    summary.totalDepartments || 0,
-                    summary.totalEmployees || 0,
-                  ],
-                  backgroundColor: ['#3B82F6', '#22C55E'],
-                  borderRadius: 8,
-                  barPercentage: 0.6,
-                  categoryPercentage: 0.5,
-                  maxBarThickness: 48,
-                },
-              ],
-            }}
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-4xl mx-auto">
+            <SummaryCard
+              icon={<FaUsers />}
+              text="Total Employees"
+              number={summary.totalEmployees || 0}
+              color="bg-gradient-to-r from-teal-500 to-teal-600"
+            />
+            <SummaryCard
+              icon={<FaBuilding />}
+              text="Total Departments"
+              number={summary.totalDepartments || 0}
+              color="bg-gradient-to-r from-yellow-500 to-yellow-600"
+            />
+            <SummaryCard
+              icon={<FaMoneyBillWave />}
+              text="Monthly Salary"
+              number={`${summary.totalSalary || 0}`}
+              color="bg-gradient-to-r from-red-500 to-red-600"
+            />
+          </div>
         </div>
 
         {/* Employee Status Section */}
@@ -306,20 +277,82 @@ const AdminSummary = () => {
               color="bg-gradient-to-r from-gray-500 to-gray-600"
             />
           </div>
-          {/* Employee Status Bar Chart */}
-          <div className="mt-8 bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg p-4 h-64 sm:h-72 lg:h-80">
-            <Bar
+        </div>
+
+        {/* Combined Pie Charts Row */}
+        <div className="mb-12 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Organization Overview Pie Chart */}
+          <div className="bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg p-6 h-80">
+            <Pie
               options={{
                 responsive: true,
                 animation: false,
                 maintainAspectRatio: false,
                 plugins: {
-                  legend: { display: false },
-                  title: { display: true, text: 'Employee Status' },
+                  legend: { 
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                      color: '#374151',
+                      font: { size: 12, weight: '500' },
+                      padding: 20,
+                      usePointStyle: true,
+                      pointStyle: 'circle'
+                    }
+                  },
+                  title: { 
+                    display: true, 
+                    text: 'Organization Overview',
+                    font: { size: 18, weight: 'bold' },
+                    color: '#374151',
+                    padding: 20
+                  },
                 },
-                scales: {
-                  x: { ticks: { color: '#9CA3AF' } },
-                  y: { ticks: { color: '#9CA3AF' }, beginAtZero: true, precision: 0 },
+              }}
+              data={{
+                labels: ['Departments', 'Employees'],
+                datasets: [
+                  {
+                    label: 'Totals',
+                    data: [
+                      summary.totalDepartments || 0,
+                      summary.totalEmployees || 0,
+                    ],
+                    backgroundColor: ['#1E40AF', '#059669'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                  },
+                ],
+              }}
+            />
+          </div>
+
+          {/* Employee Status Pie Chart */}
+          <div className="bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg p-6 h-80">
+            <Pie
+              options={{
+                responsive: true,
+                animation: false,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { 
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                      color: '#374151',
+                      font: { size: 12, weight: '500' },
+                      padding: 20,
+                      usePointStyle: true,
+                      pointStyle: 'circle'
+                    }
+                  },
+                  title: { 
+                    display: true, 
+                    text: 'Employee Status',
+                    font: { size: 18, weight: 'bold' },
+                    color: '#374151',
+                    padding: 20
+                  },
                 },
               }}
               data={{
@@ -328,8 +361,9 @@ const AdminSummary = () => {
                   {
                     label: 'Count',
                     data: [summary.activeEmployees || 0, summary.inactiveEmployees || 0],
-                    backgroundColor: ['#10B981', '#6B7280'],
-                    borderRadius: 6,
+                    backgroundColor: ['#059669', '#6B7280'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
                   },
                 ],
               }}
@@ -373,7 +407,7 @@ const AdminSummary = () => {
             />
           </div>
           {/* Leave Summary Bar Chart */}
-          <div className="mt-8 bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg p-4 h-64 sm:h-72 lg:h-80">
+          <div className="mt-8 bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg p-6 h-80">
             <Bar
               options={{
                 responsive: true,
@@ -381,11 +415,45 @@ const AdminSummary = () => {
                 maintainAspectRatio: false,
                 plugins: {
                   legend: { display: false },
-                  title: { display: true, text: 'Leave Summary' },
+                  title: { 
+                    display: true, 
+                    text: 'Leave Summary',
+                    font: { size: 18, weight: 'bold' },
+                    color: '#374151',
+                    padding: 20
+                  },
                 },
                 scales: {
-                  x: { ticks: { color: '#9CA3AF' } },
-                  y: { ticks: { color: '#9CA3AF' }, beginAtZero: true, precision: 0 },
+                  x: {
+                    ticks: { 
+                      color: '#6B7280',
+                      font: { size: 12, weight: '500' }
+                    },
+                    grid: { 
+                      display: false
+                    },
+                    border: {
+                      display: true,
+                      color: '#E5E7EB'
+                    }
+                  },
+                  y: {
+                    ticks: { 
+                      color: '#6B7280',
+                      font: { size: 12, weight: '500' },
+                      stepSize: 1
+                    },
+                    grid: { 
+                      color: '#F3F4F6',
+                      lineWidth: 1
+                    },
+                    border: {
+                      display: true,
+                      color: '#E5E7EB'
+                    },
+                    beginAtZero: true,
+                    precision: 0,
+                  },
                 },
               }}
               data={{
@@ -399,8 +467,11 @@ const AdminSummary = () => {
                       summary.leaveSummary?.pending || 0,
                       summary.leaveSummary?.rejected || 0,
                     ],
-                    backgroundColor: ['#06B6D4', '#10B981', '#F59E0B', '#EF4444'],
-                    borderRadius: 6,
+                    backgroundColor: ['#0891B2', '#059669', '#D97706', '#DC2626'],
+                    borderRadius: 0,
+                    barPercentage: 0.4,
+                    categoryPercentage: 0.6,
+                    maxBarThickness: 60,
                   },
                 ],
               }}
