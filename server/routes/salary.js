@@ -12,6 +12,7 @@ router.get('/:id', authMiddleware, getUniqueSalary);
 export default router
 
 
+
 // import express from 'express'
 // import authMiddleware from '../middleware/authMiddlware.js'
 // import { addSalary, getUniqueSalary, getSalary } from '../controllers/salaryController.js'
