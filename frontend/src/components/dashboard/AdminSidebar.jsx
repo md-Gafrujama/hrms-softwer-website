@@ -121,6 +121,7 @@ import {
   FaFileAlt,
   FaChartLine,
   FaMoneyBillWave,
+  FaSitemap,
 } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext.jsx";
 
@@ -139,6 +140,11 @@ const AdminSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen, isSidebarCollapse
       icon: FaTachometerAlt,
       label: "Dashboard",
       end: true,
+    },
+    {
+      to: "/admin-dashboard/organization",
+      icon: FaSitemap,
+      label: "Organization",
     },
     {
       to: "/admin-dashboard/employees",

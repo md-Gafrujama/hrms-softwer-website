@@ -36,7 +36,7 @@ const AdminDashboard = () => {
   console.log('Admin Mobile menu state:', isMobileMenuOpen); // Debug log
 
   return (
-    <div className='flex min-h-screen bg-gray-100 relative'>
+    <div className='flex min-h-screen bg-gray-100 dark:bg-black dark:text-white relative'>
       <AdminSidebar 
         isMobileMenuOpen={isMobileMenuOpen} 
         setIsMobileMenuOpen={setIsMobileMenuOpen}

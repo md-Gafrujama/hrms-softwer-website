@@ -99,8 +99,18 @@
 // };
 
 // export default AdminSummary;
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import SummaryCard from "./SummaryCard";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title as ChartTitle,
+  Tooltip,
+  Legend,
+} from 'chart.js'
+import { Bar } from 'react-chartjs-2'
 
 const baseURL = import.meta.env.VITE_API_URL;
 
@@ -116,6 +126,9 @@ import {
   FaUserTimes,
 } from "react-icons/fa";
 import axios from 'axios'
+
+// Register Chart.js components once
+ChartJS.register(CategoryScale, LinearScale, BarElement, ChartTitle, Tooltip, Legend)
 
 const AdminSummary = () => {
   const [summary, setSummary] = useState(null)
@@ -197,14 +210,14 @@ const AdminSummary = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-black dark:to-black dark:text-white">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="mb-8 sm:mb-10">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-800 mb-2">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-800 dark:text-white mb-2">
             Dashboard Overview
           </h1>
-          <p className="text-gray-600 text-base sm:text-lg">
+          <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg">
             Monitor your organization's key metrics and performance
           </p>
         </div>
@@ -223,18 +236,57 @@ const AdminSummary = () => {
             number={summary.totalDepartments || 0}
             color="bg-gradient-to-r from-yellow-500 to-yellow-600"
           />
-          <SummaryCard
-            icon={<FaMoneyBillWave />}
-            text="Monthly Salary"
-            number={`${summary.totalSalary || 0}`}
-            color="bg-gradient-to-r from-red-500 to-red-600"
+          
+        </div>
+
+        {/* Organization Overview (moved above employee status) */}
+        <div className="mb-12 bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg p-4 h-64 sm:h-72 lg:h-80">
+          <Bar
+            options={{
+              responsive: true,
+              animation: false,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Organization Overview' },
+              },
+              scales: {
+                x: {
+                  ticks: { color: '#9CA3AF' },
+                  grid: { color: 'rgba(156,163,175,0.15)' },
+                },
+                y: {
+                  ticks: { color: '#9CA3AF' },
+                  grid: { color: 'rgba(156,163,175,0.15)' },
+                  beginAtZero: true,
+                  precision: 0,
+                },
+              },
+            }}
+            data={{
+              labels: ['Departments', 'Employees'],
+              datasets: [
+                {
+                  label: 'Totals',
+                  data: [
+                    summary.totalDepartments || 0,
+                    summary.totalEmployees || 0,
+                  ],
+                  backgroundColor: ['#3B82F6', '#22C55E'],
+                  borderRadius: 8,
+                  barPercentage: 0.6,
+                  categoryPercentage: 0.5,
+                  maxBarThickness: 48,
+                },
+              ],
+            }}
           />
         </div>
 
         {/* Employee Status Section */}
         <div className="mb-12 sm:mb-16">
           <div className="text-center mb-8 sm:mb-10">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-3">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 dark:text-white mb-3">
               Employee Status
             </h2>
             <div className="w-20 sm:w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto rounded-full"></div>
@@ -254,12 +306,41 @@ const AdminSummary = () => {
               color="bg-gradient-to-r from-gray-500 to-gray-600"
             />
           </div>
+          {/* Employee Status Bar Chart */}
+          <div className="mt-8 bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg p-4 h-64 sm:h-72 lg:h-80">
+            <Bar
+              options={{
+                responsive: true,
+                animation: false,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
+                  title: { display: true, text: 'Employee Status' },
+                },
+                scales: {
+                  x: { ticks: { color: '#9CA3AF' } },
+                  y: { ticks: { color: '#9CA3AF' }, beginAtZero: true, precision: 0 },
+                },
+              }}
+              data={{
+                labels: ['Active', 'Inactive'],
+                datasets: [
+                  {
+                    label: 'Count',
+                    data: [summary.activeEmployees || 0, summary.inactiveEmployees || 0],
+                    backgroundColor: ['#10B981', '#6B7280'],
+                    borderRadius: 6,
+                  },
+                ],
+              }}
+            />
+          </div>
         </div>
 
         {/* Leave Details Section */}
         <div className="mb-8">
           <div className="text-center mb-8 sm:mb-10">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-3">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 dark:text-white mb-3">
               Leave Management
             </h2>
             <div className="w-20 sm:w-24 h-1 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto rounded-full"></div>
@@ -291,7 +372,43 @@ const AdminSummary = () => {
               color="bg-gradient-to-r from-red-500 to-pink-500"
             />
           </div>
+          {/* Leave Summary Bar Chart */}
+          <div className="mt-8 bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg p-4 h-64 sm:h-72 lg:h-80">
+            <Bar
+              options={{
+                responsive: true,
+                animation: false,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
+                  title: { display: true, text: 'Leave Summary' },
+                },
+                scales: {
+                  x: { ticks: { color: '#9CA3AF' } },
+                  y: { ticks: { color: '#9CA3AF' }, beginAtZero: true, precision: 0 },
+                },
+              }}
+              data={{
+                labels: ['Applied', 'Approved', 'Pending', 'Rejected'],
+                datasets: [
+                  {
+                    label: 'Count',
+                    data: [
+                      summary.leaveSummary?.appliedFor || 0,
+                      summary.leaveSummary?.approved || 0,
+                      summary.leaveSummary?.pending || 0,
+                      summary.leaveSummary?.rejected || 0,
+                    ],
+                    backgroundColor: ['#06B6D4', '#10B981', '#F59E0B', '#EF4444'],
+                    borderRadius: 6,
+                  },
+                ],
+              }}
+            />
+          </div>
         </div>
+
+        {/* Totals Bar Chart moved above employee status */}
       </div>
     </div>
   );

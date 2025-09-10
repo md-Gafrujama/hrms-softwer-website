@@ -3,17 +3,29 @@
 @tailwind utilities;
 
 /* Base theme styles */
-/* :root {
+:root {
   color-scheme: light dark;
 }
 
 html {
-  @apply bg-gray-50 text-gray-900;
+  @apply bg-white text-black;
 }
 
 html.dark {
-  @apply bg-gray-900 text-gray-100;
-} */
+  @apply bg-black text-white;
+}
+
+/* Global dark-mode overrides for common light classes so all components flip */
+@layer utilities {
+  .dark .bg-white { background-color: #000 !important; }
+  .dark .bg-gray-50 { background-color: #000 !important; }
+  .dark .bg-gray-100 { background-color: #000 !important; }
+  .dark .text-black { color: #fff !important; }
+  .dark .text-gray-900 { color: #fff !important; }
+  .dark .text-gray-800 { color: #fff !important; }
+  .dark .border-gray-200 { border-color: rgba(255,255,255,0.15) !important; }
+  .dark .border-gray-300 { border-color: rgba(255,255,255,0.2) !important; }
+}
 
 /* Smooth theme transition */
 * {
