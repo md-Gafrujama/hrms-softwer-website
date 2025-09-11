@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -139,7 +135,7 @@ const View = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showPayslip, setShowPayslip] = useState(false);
   const [selectedSalary, setSelectedSalary] = useState(null);
-  const { id } = useParams(); // This will be undefined for employee access
+  const { id } = useParams();
   const { user } = useAuth();
 
   const baseURL = import.meta.env.VITE_API_URL;
@@ -187,6 +183,109 @@ const View = () => {
            user?.employeeName ||
            'N/A';
   };
+
+  // CORRECTED: fetchSalaries function with proper role-based logic
+  const fetchSalaries = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Check if user and user.role exist
+      if (!user || !user.role) {
+        console.log("Waiting for user context to load...");
+        setError("Loading user information...");
+        return;
+      }
+
+      let apiUrl;
+      
+      // FIXED: Determine access type based on user role
+      if (user.role === "admin") {
+        if (id) {
+          // Admin accessing specific employee salary
+          apiUrl = `${baseURL}/api/salary/${id}/admin`;
+          console.log("Admin access - fetching salary for employee ID:", id);
+        } else {
+          // Admin accessing all salaries
+          apiUrl = `${baseURL}/api/salary/all/admin`;
+          console.log("Admin access - fetching all salaries");
+        }
+      } else if (user.role === "employee") {
+        // Employee can only access their own salary
+        apiUrl = `${baseURL}/api/salary/me/employee`;
+        console.log("Employee access - fetching own salary");
+        
+        // If there's an ID in URL but user is employee, show warning
+        if (id) {
+          console.warn("Employee tried to access specific employee salary - redirected to own salary");
+        }
+      } else {
+        throw new Error("Invalid user role: " + user.role);
+      }
+
+      console.log("Calling API:", apiUrl);
+
+      const response = await axios.get(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (response.data.success) {
+        setSalaries(response.data.salary || []);
+        setFilteredSalaries(response.data.salary || []);
+        
+        if (!response.data.salary || response.data.salary.length === 0) {
+          console.warn("No salary records found");
+          setError("No salary records found for this employee.");
+        }
+      } else {
+        throw new Error(response.data.message || "Failed to fetch salary data");
+      }
+    } catch (error) {
+      console.error("Error fetching salaries:", error);
+      
+      let errorMessage = "An error occurred while fetching salaries";
+      
+      if (error.response && !error.response.data.success) {
+        errorMessage = error.response.data.error || error.response.data.message || error.message;
+      } else if (error.response) {
+        if (error.response.status === 401) {
+          errorMessage = "Authentication failed. Please login again.";
+        } else if (error.response.status === 403) {
+          errorMessage = "You don't have permission to view this data.";
+        } else if (error.response.status === 404) {
+          errorMessage = "No salary records found.";
+        } else {
+          errorMessage = error.response.data?.error || error.response.data?.message || errorMessage;
+        }
+      } else if (error.request) {
+        errorMessage = "Network error. Please check your connection.";
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      setError(errorMessage);
+      setSalaries([]);
+      setFilteredSalaries([]);
+      alert(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [baseURL, id, user]);
+
+  useEffect(() => {
+    if (user && user.role) {
+      const timeoutId = setTimeout(() => {
+        fetchSalaries();
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    } else {
+      setLoading(true);
+      setError("Loading user information...");
+    }
+  }, [fetchSalaries, user]);
 
   const generatePayslipHTML = (salary) => {
     return `
@@ -283,100 +382,6 @@ const View = () => {
     setSelectedSalary(salary);
     setShowPayslip(true);
   };
-
-  // FIXED: The key change is here - this function now handles both admin and employee access properly
-  const fetchSalaries = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Authentication token not found");
-      }
-
-      let apiUrl;
-      
-      // KEY FIX: Check if ID exists (admin access) or not (employee access)
-      if (id) {
-        // Admin accessing specific employee salary
-        apiUrl = `${baseURL}/api/salary/${id}`;
-        console.log("Admin access - fetching salary for employee ID:", id);
-      } else {
-        // Employee accessing their own salary - use my-salary endpoint
-        apiUrl = `${baseURL}/api/salary/my-salary`;
-        console.log("Employee access - fetching own salary");
-      }
-
-      console.log("Calling API:", apiUrl);
-
-      const response = await axios.get(apiUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      console.log("API Response:", response.data);
-
-      if (response.data.success) {
-        let salaryData = response.data.salary || response.data.data || response.data.salaries || [];
-        
-        if (!Array.isArray(salaryData)) {
-          salaryData = [salaryData];
-        }
-        
-        console.log("Salary data received:", salaryData);
-        
-        setSalaries(salaryData);
-        setFilteredSalaries(salaryData);
-        
-        if (salaryData.length === 0) {
-          console.warn("No salary records found");
-          setError("No salary records found for this employee.");
-        }
-      } else {
-        throw new Error(response.data.message || "Failed to fetch salary data");
-      }
-    } catch (error) {
-      console.error("Error fetching salaries:", error);
-      
-      let errorMessage = "An error occurred while fetching salaries";
-      
-      if (error.response) {
-        console.log("Error status:", error.response.status);
-        console.log("Error data:", error.response.data);
-        
-        if (error.response.status === 401) {
-          errorMessage = "Authentication failed. Please login again.";
-        } else if (error.response.status === 403) {
-          errorMessage = "You don't have permission to view this data.";
-        } else if (error.response.status === 404) {
-          errorMessage = "No salary records found.";
-        } else {
-          errorMessage = error.response.data?.message || errorMessage;
-        }
-      } else if (error.request) {
-        errorMessage = "Network error. Please check your connection.";
-      } else {
-        errorMessage = error.message || errorMessage;
-      }
-      
-      setError(errorMessage);
-      setSalaries([]);
-      setFilteredSalaries([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [baseURL, id, user]);
-
-  useEffect(() => {
-    // Add a small delay to ensure user context is loaded
-    const timeoutId = setTimeout(() => {
-      fetchSalaries();
-    }, 100);
-    
-    return () => clearTimeout(timeoutId);
-  }, [fetchSalaries]);
 
   const handleSearch = useCallback((query) => {
     setSearchQuery(query);
@@ -482,13 +487,13 @@ const View = () => {
       <div className="mb-6">
         <div className="text-center mb-4">
           <h2 className="text-3xl font-bold text-gray-800">
-            {id ? 'Employee Salary History' : 'My Salary History'}
+            {user.role === "admin" && id ? 'Employee Salary History' : 'My Salary History'}
           </h2>
           {user && (
             <p className="text-gray-600 mt-1">
-              {id 
-                ? `Employee ID: ${id} | Total Records: ${filteredSalaries.length}`
-                : `Welcome ${user.name || 'Employee'} | Total Records: ${filteredSalaries.length}`
+              {user.role === "admin" && id 
+                ? `Employee ID: ${id} | Role: ${user.role} | Total Records: ${filteredSalaries.length}`
+                : `Welcome ${user.name || 'Employee'} (${user.role}) | Total Records: ${filteredSalaries.length}`
               }
             </p>
           )}
@@ -537,7 +542,7 @@ const View = () => {
                 </div>
                 <div className="text-purple-200">
                   <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012-2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </div>
               </div>
@@ -562,7 +567,7 @@ const View = () => {
         )}
 
         {/* Search and Actions Bar */}
-        {(id || filteredSalaries.length > 0) && (
+        {filteredSalaries.length > 0 && (
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
             <div className="flex-1 max-w-md">
               <div className="relative">
@@ -614,7 +619,7 @@ const View = () => {
               <tr>
                 <th className="px-6 py-4 font-semibold">S.No</th>
                 <th className="px-6 py-4 font-semibold">Employee Name</th>
-                {id && <th className="px-6 py-4 font-semibold">Employee ID</th>}
+                {user.role === "admin" && id && <th className="px-6 py-4 font-semibold">Employee ID</th>}
                 <th className="px-6 py-4 font-semibold">Basic Salary</th>
                 <th className="px-6 py-4 font-semibold">Allowances</th>
                 <th className="px-6 py-4 font-semibold">Gross Earning</th>
@@ -646,7 +651,7 @@ const View = () => {
                       {getEmployeeName(salary)}
                     </div>
                   </td>
-                  {id && (
+                  {user.role === "admin" && id && (
                     <td className="px-6 py-4">
                       <div className="font-medium text-gray-900">
                         {getEmployeeDisplay(salary)}
@@ -709,7 +714,7 @@ const View = () => {
                         title="Download Payslip"
                       >
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 712-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                       </button>
                     </div>
@@ -860,7 +865,7 @@ const View = () => {
             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md flex items-center gap-2 transition duration-200"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 712-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             Download All Payslips
           </button>
