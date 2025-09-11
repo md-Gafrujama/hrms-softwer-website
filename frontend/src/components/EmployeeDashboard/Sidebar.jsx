@@ -122,7 +122,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen, isSidebarCollapsed, se
     {
       to: `/employee-dashboard/salary/${user._id}`,
       icon: FaCalendarAlt,
-      label: "Salary",
+      label: "Add Salary",
     },
     {
       to: "/employee-dashboard/setting",

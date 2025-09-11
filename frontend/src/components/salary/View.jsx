@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import { useAuth } from "../../context/authContext";
+
+import { useAuth } from "../../context/AuthContext";
 
 // PayslipModal component
 const PayslipModal = ({ salary, onClose, formatCurrency, formatDate, getEmployeeName, getEmployeeDisplay, handleDownloadPayslip }) => (
@@ -611,118 +612,161 @@ const View = () => {
         )}
       </div>
 
-      {/* Salary Table */}
+      {/* Salary Records - Card Layout Only */}
       {filteredSalaries.length > 0 ? (
-        <div className="overflow-x-auto shadow-lg rounded-lg">
-          <table className="w-full text-sm text-left bg-white">
-            <thead className="text-xs text-gray-700 uppercase bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
-              <tr>
-                <th className="px-6 py-4 font-semibold">S.No</th>
-                <th className="px-6 py-4 font-semibold">Employee Name</th>
-                {user.role === "admin" && id && <th className="px-6 py-4 font-semibold">Employee ID</th>}
-                <th className="px-6 py-4 font-semibold">Basic Salary</th>
-                <th className="px-6 py-4 font-semibold">Allowances</th>
-                <th className="px-6 py-4 font-semibold">Gross Earning</th>
-                <th className="px-6 py-4 font-semibold">PF</th>
-                <th className="px-6 py-4 font-semibold">Medical Fund</th>
-                <th className="px-6 py-4 font-semibold">Professional Tax</th>
-                <th className="px-6 py-4 font-semibold">Income Tax</th>
-                <th className="px-6 py-4 font-semibold">Total Deductions</th>
-                <th className="px-6 py-4 font-semibold">Net Salary</th>
-                <th className="px-6 py-4 font-semibold">Paid Days</th>
-                <th className="px-6 py-4 font-semibold">Loop Days</th>
-                <th className="px-6 py-4 font-semibold">Pay Date</th>
-                <th className="px-6 py-4 font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSalaries.map((salary, index) => (
-                <tr
-                  key={salary._id || salary.id || index}
-                  className={`border-b hover:bg-gray-50 transition-colors ${
-                    index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
-                  }`}
-                >
-                  <td className="px-6 py-4 font-medium text-gray-900">
-                    {index + 1}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">
+        <div className="space-y-6">
+          {filteredSalaries.map((salary, index) => (
+            <div
+              key={salary._id || salary.id || index}
+              className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow duration-300"
+            >
+              {/* Header Section */}
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6">
+                <div className="mb-4 sm:mb-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm font-semibold">
+                      #{index + 1}
+                    </div>
+                    <h3 className="font-bold text-gray-900 text-xl">
                       {getEmployeeName(salary)}
-                    </div>
-                  </td>
+                    </h3>
+                  </div>
                   {user.role === "admin" && id && (
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">
-                        {getEmployeeDisplay(salary)}
-                      </div>
-                    </td>
+                    <p className="text-sm text-gray-600 mb-1">
+                      <span className="font-medium">Employee ID:</span> {getEmployeeDisplay(salary)}
+                    </p>
                   )}
-                  <td className="px-6 py-4 font-medium">
-                    {formatCurrency(salary.basicSalary)}
-                  </td>
-                  <td className="px-6 py-4 text-green-600 font-medium">
-                    {formatCurrency(salary.allowances)}
-                  </td>
-                  <td className="px-6 py-4 font-semibold text-blue-600">
-                    {formatCurrency(salary.grossEarning)}
-                  </td>
-                  <td className="px-6 py-4 text-red-600 font-medium">
-                    {formatCurrency(salary.pF)}
-                  </td>
-                  <td className="px-6 py-4 text-red-600 font-medium">
-                    {formatCurrency(salary.medicalFund)}
-                  </td>
-                  <td className="px-6 py-4 text-red-600 font-medium">
-                    {formatCurrency(salary.professionalTaxes)}
-                  </td>
-                  <td className="px-6 py-4 text-red-600 font-medium">
-                    {formatCurrency(salary.incomeTaxes)}
-                  </td>
-                  <td className="px-6 py-4 text-red-600 font-medium">
-                    {formatCurrency(salary.deductions)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="font-bold text-lg text-green-700 bg-green-50 px-3 py-1 rounded-full">
-                      {formatCurrency(salary.netSalary)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {salary.paidDays || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {salary.loopDays || '0'}
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">
-                    {formatDate(salary.payDate)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleViewPayslip(salary)}
-                        className="text-blue-600 hover:text-blue-800 p-1 rounded bg-blue-50 hover:bg-blue-100"
-                        title="View Salary Slip"
-                      >
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => handleDownloadPayslip(salary)}
-                        className="text-green-600 hover:text-green-800 p-1 rounded bg-green-50 hover:bg-green-100"
-                        title="Download Payslip"
-                      >
-                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 712-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      </button>
+                  <p className="text-sm text-gray-500">
+                    <span className="font-medium">Pay Date:</span> {formatDate(salary.payDate)}
+                  </p>
+                </div>
+                <div className="text-center sm:text-right">
+                  <div className="text-3xl font-bold text-green-600 mb-1">
+                    {formatCurrency(salary.netSalary)}
+                  </div>
+                  <div className="text-sm text-gray-500 font-medium">Net Salary</div>
+                </div>
+              </div>
+
+              {/* Main Content Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                {/* Earnings Section */}
+                <div className="bg-gradient-to-br from-green-50 to-green-100 p-5 rounded-lg border border-green-200">
+                  <h4 className="font-bold text-green-800 text-lg mb-4 flex items-center gap-2">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                    Earnings
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700 font-medium">Basic Salary</span>
+                      <span className="font-bold text-green-700">{formatCurrency(salary.basicSalary)}</span>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700 font-medium">Allowances</span>
+                      <span className="font-bold text-green-700">{formatCurrency(salary.allowances)}</span>
+                    </div>
+                    <div className="border-t border-green-300 pt-3">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-green-800">Gross Earning</span>
+                        <span className="font-bold text-xl text-green-800">{formatCurrency(salary.grossEarning)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Deductions Section */}
+                <div className="bg-gradient-to-br from-red-50 to-red-100 p-5 rounded-lg border border-red-200">
+                  <h4 className="font-bold text-red-800 text-lg mb-4 flex items-center gap-2">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 12H4" />
+                    </svg>
+                    Deductions
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700 font-medium">PF</span>
+                      <span className="font-bold text-red-700">{formatCurrency(salary.pF)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700 font-medium">Professional Tax</span>
+                      <span className="font-bold text-red-700">{formatCurrency(salary.professionalTaxes)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700 font-medium">Income Tax</span>
+                      <span className="font-bold text-red-700">{formatCurrency(salary.incomeTaxes)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700 font-medium">Medical Fund</span>
+                      <span className="font-bold text-red-700">{formatCurrency(salary.medicalFund)}</span>
+                    </div>
+                    <div className="border-t border-red-300 pt-3">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-red-800">Total Deductions</span>
+                        <span className="font-bold text-xl text-red-800">{formatCurrency(salary.deductions)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Attendance & Summary Section */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-5 rounded-lg border border-blue-200">
+                  <h4 className="font-bold text-blue-800 text-lg mb-4 flex items-center gap-2">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Attendance
+                  </h4>
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-700 mb-1">
+                        {salary.paidDays || 'N/A'}
+                      </div>
+                      <div className="text-sm text-gray-600 font-medium">Paid Days</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-orange-600 mb-1">
+                        {salary.loopDays || '0'}
+                      </div>
+                      <div className="text-sm text-gray-600 font-medium">Loop Days</div>
+                    </div>
+                    <div className="border-t border-blue-300 pt-3">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-blue-800">
+                          {salary.paidDays ? ((salary.paidDays / 30) * 100).toFixed(1) : '0'}%
+                        </div>
+                        <div className="text-xs text-gray-600">Attendance Rate</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions Section */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => handleViewPayslip(salary)}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  View Payslip
+                </button>
+                <button
+                  onClick={() => handleDownloadPayslip(salary)}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 712-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Download Payslip
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div className="text-center py-12">
