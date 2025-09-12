@@ -29,6 +29,7 @@ const OrganizationPage = () => {
           id: d._id,
           name: d.dep_name,
           description: d.description || '',
+          departmentHead: d.departmentHead?.userId?.name || 'N/A',
         }))
 
         const apiEmployees = (empRes?.data?.employees || []).map(e => ({
@@ -192,7 +193,7 @@ const OrganizationPage = () => {
                   {/* Department Head */}
                   <div className="mb-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
                     <p className="text-sm font-medium text-blue-800 dark:text-blue-300">Department Head</p>
-                    <p className="font-semibold">N/A</p>
+                    <p className="font-semibold">{department.departmentHead}</p>
                   </div>
                   {/* Team */}
                   <div className="space-y-3">
@@ -254,7 +255,7 @@ const OrganizationPage = () => {
                   <div className="p-4 space-y-4">
                     <div>
                       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Department Head</p>
-                      <p className="font-semibold">{selectedDepartment.head}</p>
+                      <p className="font-semibold">{selectedDepartment.departmentHead}</p>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Team Size</p>

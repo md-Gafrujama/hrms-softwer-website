@@ -23,6 +23,7 @@ import Detail from "./components/leave/Detail";
 import Attendance from "./components/attendance/Attendance";
 import AttendanceReport from "./components/attendance/AttendanceReport";
 import OrganizationPage from "./pages/OrganizationPage";
+import AllActivities from "./pages/AllActivities";
 
 function App() {
   return (
@@ -83,6 +84,18 @@ function App() {
           <Route path="/admin-dashboard/attendance-report" element={<AttendanceReport />}></Route>
           <Route path="/admin-dashboard/organization" element={<OrganizationPage />}></Route>
         </Route>
+        
+        {/* Standalone route for All Activities */}
+        <Route 
+          path="/all-activities" 
+          element={
+            <PrivateRoutes>
+              <RoleBaseRoutes requiredRole={["admin"]}>
+                <AllActivities />
+              </RoleBaseRoutes>
+            </PrivateRoutes>
+          }
+        ></Route>
         <Route
           path="/employee-dashboard"
           element={

@@ -7,6 +7,7 @@ import User from './User.js'
 const departmentSchema = new mongoose.Schema({
     dep_name: {type: String, required: true},
     description: {type: String},
+    departmentHead: {type: mongoose.Schema.Types.ObjectId, ref: "Employee", default: null},
     createdAt: {type: Date, default: Date.now},
     updatedAt: {type: Date, default: Date.now}
 })

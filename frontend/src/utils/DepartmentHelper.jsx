@@ -14,6 +14,11 @@ export const columns = [
     sortable: true
   },
   {
+    name: "Department Head",
+    selector: (row) => row.departmentHead,
+    sortable: true
+  },
+  {
     name: "Action",
     selector: (row) => row.action,
   },

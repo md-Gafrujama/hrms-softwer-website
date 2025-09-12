@@ -200,7 +200,7 @@ const Add = () => {
           {/* Salary */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Salary
+             Salary
             </label>
             <input
               type="number"

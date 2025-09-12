@@ -487,13 +487,13 @@ const View = () => {
       {/* Header */}
       <div className="mb-6">
         <div className="text-center mb-4">
-          <h2 className="text-3xl font-bold text-gray-800">
+          <h2 className="text-4xl font-extrabold text-gray-900 mb-2">
             {user.role === "admin" && id ? 'Employee Salary History' : 'My Salary History'}
           </h2>
           {user && (
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-700 mt-2 font-medium">
               {user.role === "admin" && id 
-                ? `Employee ID: ${id} | Role: ${user.role} | Total Records: ${filteredSalaries.length}`
+                ? `Role: ${user.role} | Total Records: ${filteredSalaries.length}`
                 : `Welcome ${user.name || 'Employee'} (${user.role}) | Total Records: ${filteredSalaries.length}`
               }
             </p>

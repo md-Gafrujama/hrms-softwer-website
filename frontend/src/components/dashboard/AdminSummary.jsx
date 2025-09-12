@@ -100,6 +100,7 @@
 
 // export default AdminSummary;
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SummaryCard from "./SummaryCard";
 import {
   Chart as ChartJS,
@@ -132,8 +133,11 @@ import axios from 'axios'
 ChartJS.register(CategoryScale, LinearScale, BarElement, ChartTitle, Tooltip, Legend, ArcElement)
 
 const AdminSummary = () => {
+  const navigate = useNavigate();
   const [summary, setSummary] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [recentActivities, setRecentActivities] = useState([])
+  const [activitiesLoading, setActivitiesLoading] = useState(true)
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -185,8 +189,29 @@ const AdminSummary = () => {
         setLoading(false)
       }
     }
+
+    const fetchRecentActivities = async () => {
+      try {
+        setActivitiesLoading(true)
+        const token = localStorage.getItem('token')
+        const headers = {
+          "Authorization": `Bearer ${token}`
+        }
+
+        const response = await axios.get(`${baseURL}/api/recent?limit=5`, { headers })
+        
+        if (response.data.success) {
+          setRecentActivities(response.data.activities)
+        }
+      } catch(error) {
+        console.log('Error fetching activities:', error.message)
+      } finally {
+        setActivitiesLoading(false)
+      }
+    }
     
     fetchSummary()
+    fetchRecentActivities()
   }, [])
 
   if(loading) {
@@ -476,6 +501,99 @@ const AdminSummary = () => {
                 ],
               }}
             />
+          </div>
+        </div>
+
+        {/* Recent Activities Section */}
+        <div className="mb-8">
+          <div className="text-center mb-8 sm:mb-10">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 dark:text-white mb-3">
+              Recent Activities
+            </h2>
+            <div className="w-20 sm:w-24 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto rounded-full"></div>
+            <p className="text-gray-600 dark:text-gray-300 mt-3">
+              Latest updates across the organization
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
+                  Recent Activities
+                </h3>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Latest updates across the organization
+                </span>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {activitiesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-3 text-gray-600 dark:text-gray-300">Loading activities...</span>
+                </div>
+              ) : recentActivities.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 dark:text-gray-400">No recent activities found.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {recentActivities.map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="flex items-start space-x-3 p-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border border-gray-100 dark:border-gray-600"
+                    >
+                      {/* Status Indicator */}
+                      <div className={`h-2 w-2 rounded-full mt-2 flex-shrink-0 ${
+                        activity.status === 'success' ? 'bg-green-500' :
+                        activity.status === 'pending' ? 'bg-yellow-500' : 
+                        activity.status === 'error' ? 'bg-red-500' : 'bg-gray-500'
+                      }`} />
+                      
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                          {activity.message}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {activity.time}
+                        </p>
+                      </div>
+                      
+                      {/* Status Badge */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                          {activity.type}
+                        </span>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          activity.status === 'success' 
+                            ? 'bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' 
+                            : activity.status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800 border border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800'
+                            : activity.status === 'error'
+                            ? 'bg-red-100 text-red-800 border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800'
+                            : 'bg-gray-100 text-gray-800 border border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600'
+                        }`}>
+                          {activity.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* View All Button */}
+              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => navigate('/all-activities')}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                >
+                  View All Activities
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -142,15 +142,16 @@ const AdminSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen, isSidebarCollapse
       end: true,
     },
     {
-      to: "/admin-dashboard/organization",
-      icon: FaSitemap,
-      label: "Organization",
-    },
-    {
       to: "/admin-dashboard/employees",
       icon: FaUsers,
       label: "Employee",
     },
+    {
+      to: "/admin-dashboard/organization",
+      icon: FaSitemap,
+      label: "Organization",
+    },
+   
     {
       to: "/admin-dashboard/departments",
       icon: FaBuilding,
@@ -164,7 +165,7 @@ const AdminSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen, isSidebarCollapse
     {
       to: "/admin-dashboard/salary/add",
       icon: FaMoneyBillWave,
-      label: "Salary",
+      label: "Add Salary",
     },
     {
       to: "/admin-dashboard/attendance",
