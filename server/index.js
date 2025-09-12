@@ -7,7 +7,8 @@ import salaryRouter from './routes/salary.js'
 import leaveRouter from './routes/leave.js' 
 import settingRouter from './routes/setting.js'
 import attendanceRouter from './routes/attendance.js'
-import dashboardRouter from './routes/dashboard.js'
+import dashboardRouter from './routes/dashboard.js';
+import recent from "./routes/recent.js";
 import connectToDatabase from './db/db.js'
 import dotenv from 'dotenv'
 dotenv.config()
@@ -24,7 +25,8 @@ app.use('/api/salary', salaryRouter)
 app.use('/api/leave', leaveRouter)
 app.use('/api/setting', settingRouter)
 app.use('/api/attendance', attendanceRouter)
-app.use('/api/dashboard', dashboardRouter)
+app.use('/api/dashboard', dashboardRouter);
+app.use("/api/recent",recent);
 
 app.listen(process.env.PORT, () => {
     console.log(`Server is Running on port ${process.env.PORT}`)

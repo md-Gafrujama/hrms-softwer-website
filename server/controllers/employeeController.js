@@ -164,6 +164,7 @@ import User from "../models/User.js";
 import bcrypt from "bcrypt";
 import path from "path";
 import Department from "../models/Department.js";
+import Salary from "../models/Salary.js";
 
 // const storage = multer.diskStorage({
 //   destination: (req, file, cb) => {
@@ -279,38 +280,77 @@ const updateEmployee = async (req, res) => {
     const { id } = req.params;
     const { name, email, maritalStatus, designation, department, salary, role, status } = req.body;
 
-    const employee = await Employee.findById({ _id: id });
+    const employee = await Employee.findById(id);
     if (!employee) {
-      return res.status(404).json({ success: false, error: "employee not found" });
+      return res.status(404).json({ success: false, error: "Employee not found" });
     }
-    const user = await User.findById({ _id: employee.userId });
+
+    const user = await User.findById(employee.userId);
     if (!user) {
-      return res.status(404).json({ success: false, error: "user not found" });
+      return res.status(404).json({ success: false, error: "User not found" });
     }
 
-    const userUpdateData = {};
-    if (name) userUpdateData.name = name;
-    if (email) userUpdateData.email = email;
-    if (role) userUpdateData.role = role;
-    if (status) userUpdateData.status = status;
-    if (req.cloudinaryUrl) userUpdateData.profileImage = req.cloudinaryUrl;
+    const userUpdateData = {
+      ...(name && { name }), 
+      ...(email && { email }), 
+      ...(role && { role }),
+      ...(status && { status }),
+      ...(req.cloudinaryUrl && { profileImage: req.cloudinaryUrl })
+    };
 
-    const employeeUpdateData = {};
-    if (maritalStatus) employeeUpdateData.maritalStatus = maritalStatus;
-    if (designation) employeeUpdateData.designation = designation;
-    if (salary !== undefined) employeeUpdateData.salary = salary;
-    if (department) employeeUpdateData.department = department;
-    if (status) employeeUpdateData.status = status;
+    const employeeUpdateData = {
+      ...(maritalStatus && { maritalStatus }),
+      ...(designation && { designation }),
+      ...(salary !== undefined && { salary }),
+      ...(department && { department }),
+      ...(status && { status })
+    };
 
     const [updatedUser, updatedEmployee] = await Promise.all([
-      Object.keys(userUpdateData).length ? User.findByIdAndUpdate({ _id: employee.userId }, userUpdateData, { new: true }) : Promise.resolve(user),
-      Object.keys(employeeUpdateData).length ? Employee.findByIdAndUpdate({ _id: id }, employeeUpdateData, { new: true }) : Promise.resolve(employee),
+      Object.keys(userUpdateData).length ? 
+        User.findByIdAndUpdate(employee.userId, userUpdateData, { new: true }) : 
+        Promise.resolve(user),
+
+      Object.keys(employeeUpdateData).length ? 
+        Employee.findByIdAndUpdate(id, employeeUpdateData, { new: true }) : 
+        Promise.resolve(employee),
     ]);
 
-    return res.status(200).json({ success: true, message: "employee update", user: updatedUser, employee: updatedEmployee });
+    const employeeResponse = {
+      _id: updatedEmployee._id,
+      userId: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        profileImage: updatedUser.profileImage,
+      },
+      employeeId: updatedEmployee.employeeId,
+      employeeName: updatedUser.name,  
+      dob: updatedEmployee.dob,
+      gender: updatedEmployee.gender,
+      maritalStatus: updatedEmployee.maritalStatus,
+      designation: updatedEmployee.designation,
+      department: updatedEmployee.department,
+      salary: updatedEmployee.salary,
+      status: updatedEmployee.status,
+      createdAt: updatedEmployee.createdAt,
+      updatedAt: updatedEmployee.updatedAt,
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: "Employee updated successfully",
+      employees: [employeeResponse], 
+      users: [{
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role
+      }]
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, error: "update employees server error" });
+    return res.status(500).json({ success: false, error: "Server error while updating employee" });
   }
 };
 
@@ -318,7 +358,6 @@ const deleteEmployee = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Find the employee first
     const employee = await Employee.findById({ _id: id });
     if (!employee) {
       return res
@@ -326,7 +365,13 @@ const deleteEmployee = async (req, res) => {
         .json({ success: false, error: "Employee not found" });
     }
 
-    // Delete the associated user account
+    const salaryDeleted = await Salary.findOneAndDelete({ employeeId: employee._id });
+    if (!salaryDeleted) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Associated salary record not found" });
+    }
+
     const userDeleted = await User.findByIdAndDelete({ _id: employee.userId });
     if (!userDeleted) {
       return res
@@ -334,7 +379,6 @@ const deleteEmployee = async (req, res) => {
         .json({ success: false, error: "Associated user not found" });
     }
 
-    // Delete the employee record
     const employeeDeleted = await Employee.findByIdAndDelete({ _id: id });
     if (!employeeDeleted) {
       return res
@@ -344,7 +388,7 @@ const deleteEmployee = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Employee and associated user deleted successfully",
+      message: "Employee, associated user, and salary deleted successfully",
     });
   } catch (error) {
     console.log(error);
