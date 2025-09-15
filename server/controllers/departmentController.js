@@ -11,10 +11,11 @@ const getDepartments = async (req, res) => {
 
 const addDepartment = async (req, res) => {
     try {
-        const {dep_name, description} = req.body;
+        const {dep_name, description,head} = req.body;
         const newDep = new Department({ 
             dep_name,
-            description
+            description,
+            head
         })
         await newDep.save()
         return res.status(200).json({success: true, department: newDep})
@@ -35,15 +36,16 @@ const getDepartment = async (req, res) => {
 
 const updateDepartment = async (req, res) => {
     try {
-        const {id} = req.params;
-        const {dep_name, description} = req.body;
-        const updateDep = await Department.findByIdAndUpdate({_id: id}, {
-            dep_name,
-            description
-        })
-        return res.status(200).json({success: true, updateDep})
-    } catch(error) {
-        return res.status(500).json({success: false, error: "edit department server error"})
+        const { id } = req.params;
+        const { dep_name, description, head,headId } = req.body;
+        const updateDep = await Department.findByIdAndUpdate(
+            id,
+            { dep_name, description, head,headId },
+            { new: true } 
+        );
+        return res.status(200).json({ success: true,msg:"updated sucessfully", updateDep });
+    } catch (error) {
+        return res.status(500).json({ success: false, error: "edit department server error" });
     }
 }
 
@@ -89,12 +91,12 @@ const firstDepart = async (req, res) => {
 
 const secondDepart = async (req, res) => {
     try {
-        const department = await Department.findOne({ dep_name: "sales" });
+        const department = await Department.findOne({ dep_name: "Data Analyst" });
 
         if (!department) {
             return res.status(404).json({
                 success: false,
-                message: "Sales department not found",
+                message:"Data Analyst department not found",
             });
         }
 

@@ -3,13 +3,17 @@ import Employee from "./Employee.js";
 import Leave from "./Leave.js";
 import Salary from "./Salary.js";
 import User from './User.js'
+import { Schema } from "mongoose";
 
 const departmentSchema = new mongoose.Schema({
     dep_name: {type: String, required: true},
     description: {type: String},
+    head: {type:String}, 
+    headId :{type:Schema.Types.ObjectId,ref: 'Employee', required: true},
     createdAt: {type: Date, default: Date.now},
     updatedAt: {type: Date, default: Date.now}
-})
+});
+
 
 departmentSchema.pre("deleteOne", {document: true, query: false}, async function(next) {
     try {
