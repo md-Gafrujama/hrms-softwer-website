@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { fetchDepartments, getEmployees } from "../../utils/EmployeeHelper";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
+import socket from "../../utils/socketClient.js";
 
 const baseURL = import.meta.env.VITE_API_URL;
 
@@ -37,32 +38,52 @@ const Add = () => {
 
   // Calculate derived values whenever relevant fields change
   useEffect(() => {
-    const { basicSalary, allowances, deductions, medicalFund, pF, professionalTaxes, incomeTaxes } = salary;
+    const {
+      basicSalary,
+      allowances,
+      deductions,
+      medicalFund,
+      pF,
+      professionalTaxes,
+      incomeTaxes,
+    } = salary;
     const grossEarning = Number(basicSalary) + Number(allowances);
-    const totalDeductions = Number(deductions) + Number(medicalFund) + Number(pF) + Number(professionalTaxes) + Number(incomeTaxes);
+    const totalDeductions =
+      Number(deductions) +
+      Number(medicalFund) +
+      Number(pF) +
+      Number(professionalTaxes) +
+      Number(incomeTaxes);
     const netSalary = grossEarning - totalDeductions;
-    
-    setSalary(prevData => ({
+
+    setSalary((prevData) => ({
       ...prevData,
       grossEarning: grossEarning >= 0 ? grossEarning : 0,
-      netSalary: netSalary >= 0 ? netSalary : 0
+      netSalary: netSalary >= 0 ? netSalary : 0,
     }));
-  }, [salary.basicSalary, salary.allowances, salary.deductions, salary.medicalFund, salary.pF, salary.professionalTaxes, salary.incomeTaxes]);
+  }, [
+    salary.basicSalary,
+    salary.allowances,
+    salary.deductions,
+    salary.medicalFund,
+    salary.pF,
+    salary.professionalTaxes,
+    salary.incomeTaxes,
+  ]);
 
   const handleDepartment = async (e) => {
     try {
       const emps = await getEmployees(e.target.value);
       setEmployees(emps);
       console.log("Employees fetched:", emps); // Debug log
-      
+
       // Reset employee selection when department changes
-      setSalary(prevData => ({
+      setSalary((prevData) => ({
         ...prevData,
         employeeId: "",
-        employeeName: ""
+        employeeName: "",
       }));
       setSelectedEmployee(null);
-      
     } catch (error) {
       console.error("Error fetching employees:", error);
       setEmployees([]);
@@ -71,13 +92,13 @@ const Add = () => {
 
   const handleEmployeeChange = (e) => {
     const selectedEmpId = e.target.value;
-    const selectedEmp = employees.find(emp => emp._id === selectedEmpId);
-    
+    const selectedEmp = employees.find((emp) => emp._id === selectedEmpId);
+
     console.log("Selected Employee Object:", selectedEmp); // Debug log
-    
+
     if (selectedEmp) {
       setSelectedEmployee(selectedEmp);
-      
+
       // Try to get the employee name from various possible fields
       let employeeName = "";
       if (selectedEmp.userId && selectedEmp.userId.name) {
@@ -95,29 +116,41 @@ const Add = () => {
       } else {
         employeeName = selectedEmp.employeeId || "Unknown";
       }
-      
+
       console.log("Final Employee Name:", employeeName); // Debug log
-      
-      setSalary(prevData => ({
+
+      setSalary((prevData) => ({
         ...prevData,
         employeeId: selectedEmpId,
-        employeeName: employeeName
+        employeeName: employeeName,
       }));
     } else {
       setSelectedEmployee(null);
-      setSalary(prevData => ({
+      setSalary((prevData) => ({
         ...prevData,
         employeeId: "",
-        employeeName: ""
+        employeeName: "",
       }));
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Validate numeric inputs
-    if (['basicSalary', 'allowances', 'deductions', 'paidDays', 'loopDays', 'medicalFund', 'pF', 'professionalTaxes', 'incomeTaxes'].includes(name)) {
+    if (
+      [
+        "basicSalary",
+        "allowances",
+        "deductions",
+        "paidDays",
+        "loopDays",
+        "medicalFund",
+        "pF",
+        "professionalTaxes",
+        "incomeTaxes",
+      ].includes(name)
+    ) {
       const numValue = parseFloat(value) || 0;
       if (numValue < 0) {
         alert(`${name} cannot be negative`);
@@ -151,16 +184,17 @@ const Add = () => {
     }
 
     try {
-      const response = await axios.post(
-        `${baseURL}/api/salary/add`,
-        salary,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await axios.post(`${baseURL}/api/salary/add`, salary, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      const userId = "68c3dae7bc46322606c094cb";
       if (response.data.success) {
+        socket.emit("newNotification", {
+          userId: selectedEmployee?.userId?._id,
+          message: "Salary received successfully",
+        });
         alert("Salary added successfully!");
         navigate("/admin-dashboard/salary");
       }
@@ -215,7 +249,13 @@ const Add = () => {
                   <option value="">Select Employee</option>
                   {employees.map((emp) => (
                     <option key={emp._id} value={emp._id}>
-                      {emp.employeeId} - {emp.userId?.name || emp.name || emp.firstName || emp.fullName || emp.employeeName || "Unknown"}
+                      {emp.employeeId} -{" "}
+                      {emp.userId?.name ||
+                        emp.name ||
+                        emp.firstName ||
+                        emp.fullName ||
+                        emp.employeeName ||
+                        "Unknown"}
                     </option>
                   ))}
                 </select>
@@ -438,22 +478,30 @@ const Add = () => {
 
             {/* Summary Section */}
             <div className="mt-8 p-6 bg-gray-50 rounded-md border">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">Salary Summary</h3>
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                Salary Summary
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white p-4 rounded-md shadow-sm">
                   <h4 className="font-medium text-gray-600 mb-2">Earnings</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span>Basic Salary:</span>
-                      <span className="font-medium">₹{Number(salary.basicSalary).toLocaleString()}</span>
+                      <span className="font-medium">
+                        ₹{Number(salary.basicSalary).toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Allowances:</span>
-                      <span className="font-medium">₹{Number(salary.allowances).toLocaleString()}</span>
+                      <span className="font-medium">
+                        ₹{Number(salary.allowances).toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between border-t pt-1">
                       <span className="font-semibold">Gross Earning:</span>
-                      <span className="font-semibold text-green-600">₹{Number(salary.grossEarning).toLocaleString()}</span>
+                      <span className="font-semibold text-green-600">
+                        ₹{Number(salary.grossEarning).toLocaleString()}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -463,27 +511,46 @@ const Add = () => {
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span>Medical Fund:</span>
-                      <span className="font-medium">₹{Number(salary.medicalFund).toLocaleString()}</span>
+                      <span className="font-medium">
+                        ₹{Number(salary.medicalFund).toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>PF:</span>
-                      <span className="font-medium">₹{Number(salary.pF).toLocaleString()}</span>
+                      <span className="font-medium">
+                        ₹{Number(salary.pF).toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Prof. Tax:</span>
-                      <span className="font-medium">₹{Number(salary.professionalTaxes).toLocaleString()}</span>
+                      <span className="font-medium">
+                        ₹{Number(salary.professionalTaxes).toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Income Tax:</span>
-                      <span className="font-medium">₹{Number(salary.incomeTaxes).toLocaleString()}</span>
+                      <span className="font-medium">
+                        ₹{Number(salary.incomeTaxes).toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Other:</span>
-                      <span className="font-medium">₹{Number(salary.deductions).toLocaleString()}</span>
+                      <span className="font-medium">
+                        ₹{Number(salary.deductions).toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between border-t pt-1">
                       <span className="font-semibold">Total:</span>
-                      <span className="font-semibold text-red-600">₹{(Number(salary.deductions) + Number(salary.medicalFund) + Number(salary.pF) + Number(salary.professionalTaxes) + Number(salary.incomeTaxes)).toLocaleString()}</span>
+                      <span className="font-semibold text-red-600">
+                        ₹
+                        {(
+                          Number(salary.deductions) +
+                          Number(salary.medicalFund) +
+                          Number(salary.pF) +
+                          Number(salary.professionalTaxes) +
+                          Number(salary.incomeTaxes)
+                        ).toLocaleString()}
+                      </span>
                     </div>
                   </div>
                 </div>
