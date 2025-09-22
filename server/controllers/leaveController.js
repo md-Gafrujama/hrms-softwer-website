@@ -6,7 +6,7 @@ const addLeave = async (req, res) => {
         const {userId, leaveType, startDate, endDate, reason} = req.body
         const employee = await Employee.findOne({userId})
 
-        console.log("leave")
+        console.log("leave",req.body)
 
         const newLeave = new Leave({
             employeeId: employee._id, leaveType, startDate, endDate, reason
