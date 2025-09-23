@@ -21,7 +21,7 @@ const addSalary = async (req, res) => {
 
     const payDateObj = new Date(payDate);
     const year = payDateObj.getFullYear();
-    const month = payDateObj.getMonth() + 1; 
+    const month = payDateObj.getMonth() + 1;
     const totalDaysInMonth = new Date(year, month, 0).getDate();
     const perDaySalary = Number(basicSalary) / totalDaysInMonth;
     const loopDaysSalary = perDaySalary * (Number(loopDays) || 0);
@@ -67,6 +67,18 @@ const addSalary = async (req, res) => {
 
     await newSalary.save();
 
+    sendNewNotification(employeeId, {
+      title: "Salary Added",
+      message: `Your salary for the month of ${payDateObj.toLocaleString(
+        "default",
+        { month: "long" }
+      )} has been processed.`,
+      salaryDetails: {
+        basicSalary,
+        netSalary,
+      },  
+    });
+
     return res
       .status(200)
       .json({ success: true, message: "Salary saved successfully" });
@@ -88,8 +100,8 @@ const getUniqueSalary = async (req, res) => {
     }
 
     const salary = await Salary.findOne({ employeeId: id })
-      .sort({ payDate: -1 }) 
-      .populate("employeeId", "employeeId employeeName"); 
+      .sort({ payDate: -1 })
+      .populate("employeeId", "employeeId employeeName");
 
     if (!salary) {
       return res.status(404).json({
@@ -102,7 +114,6 @@ const getUniqueSalary = async (req, res) => {
       success: true,
       salary,
     });
-
   } catch (error) {
     console.error("Error getting unique salary:", error);
     return res.status(500).json({
@@ -119,7 +130,12 @@ const getSalary = async (req, res) => {
 
     console.log("=== getSalary API Called ===");
     console.log("Request params - id:", id, "role:", role);
-    console.log("User from JWT token - ID:", req.user._id, "Role:", req.user.role);
+    console.log(
+      "User from JWT token - ID:",
+      req.user._id,
+      "Role:",
+      req.user.role
+    );
 
     // SECURITY: Verify that the requested role matches the user's actual role from JWT
     if (req.user.role !== role) {
@@ -128,7 +144,7 @@ const getSalary = async (req, res) => {
       console.log("Requested Role:", role);
       return res.status(403).json({
         success: false,
-        error: "Access denied. Role mismatch detected."
+        error: "Access denied. Role mismatch detected.",
       });
     }
 
@@ -136,7 +152,7 @@ const getSalary = async (req, res) => {
 
     if (role === "admin") {
       console.log("🔑 Admin access granted");
-      
+
       if (id === "all") {
         // Admin viewing all salaries
         console.log("📋 Fetching ALL salary records for admin");
@@ -150,18 +166,17 @@ const getSalary = async (req, res) => {
           .populate("employeeId", "employeeId employeeName")
           .sort({ payDate: -1 });
       }
-      
     } else if (role === "employee") {
       console.log("👨‍💼 Employee access - finding employee record");
-      
+
       // For employees, always use their JWT user ID to find their employee record
       const employee = await Employee.findOne({ userId: req.user._id });
-      
+
       if (!employee) {
         console.log("❌ Employee record not found for user:", req.user._id);
         return res.status(404).json({
           success: false,
-          error: "Employee record not found. Please contact administrator."
+          error: "Employee record not found. Please contact administrator.",
         });
       }
 
@@ -169,21 +184,24 @@ const getSalary = async (req, res) => {
       console.log("Employee details:", {
         employeeId: employee.employeeId,
         employeeName: employee.employeeName,
-        userId: employee.userId
+        userId: employee.userId,
       });
 
       // Find salary records for this employee only
       salary = await Salary.find({ employeeId: employee._id })
         .populate("employeeId", "employeeId employeeName")
         .sort({ payDate: -1 });
-        
-      console.log("📊 Found", salary?.length || 0, "salary records for employee");
-      
+
+      console.log(
+        "📊 Found",
+        salary?.length || 0,
+        "salary records for employee"
+      );
     } else {
       console.log("❌ Invalid role specified:", role);
       return res.status(400).json({
         success: false,
-        error: "Invalid role specified. Must be 'admin' or 'employee'."
+        error: "Invalid role specified. Must be 'admin' or 'employee'.",
       });
     }
 
@@ -194,21 +212,20 @@ const getSalary = async (req, res) => {
       return res.status(200).json({
         success: true,
         salary: [],
-        message: "No salary records found"
+        message: "No salary records found",
       });
     }
 
     console.log("✅ Successfully returning", salary.length, "salary records");
-    return res.status(200).json({ 
-      success: true, 
-      salary 
+    return res.status(200).json({
+      success: true,
+      salary,
     });
-
   } catch (error) {
     console.error("❌ Error in getSalary:", error);
-    return res.status(500).json({ 
-      success: false, 
-      error: "Internal server error: " + error.message 
+    return res.status(500).json({
+      success: false,
+      error: "Internal server error: " + error.message,
     });
   }
 };
