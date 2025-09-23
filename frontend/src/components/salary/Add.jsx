@@ -10,6 +10,10 @@ const Add = () => {
   const [salary, setSalary] = useState({
     employeeId: "",
     employeeName: "",
+    logo: "",
+    qrCode: "",
+    companyName: "",
+    companyAddress: "",
     basicSalary: 0,
     allowances: 0,
     deductions: 0,
@@ -162,6 +166,37 @@ const Add = () => {
     }
   };
 
+
+    // handle 
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    const file = files[0];
+
+    if (file) {
+   
+      if (!file.type.startsWith('image/')) {
+        alert('Please select a valid image file');
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size should be less than 5MB');
+        return;
+      }
+
+      // Convert file to base64 for preview and storage
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setSalary((prevData) => ({
+          ...prevData,
+          [name]: event.target.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -213,6 +248,96 @@ const Add = () => {
         <div className="max-w-6xl mx-auto mt-10 bg-white p-8 rounded-md shadow-md">
           <h2 className="text-2xl font-bold mb-6">Add Salary</h2>
           <form onSubmit={handleSubmit}>
+            {/* Company Information Section */}
+            <div className="mb-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+              <h3 className="text-lg font-semibold mb-4 text-blue-800">
+                Company Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Logo */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Company Logo Image
+                  </label>
+                  <input
+                    type="file"
+                    name="logo"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
+                  />
+                  {salary.logo && (
+                    <div className="mt-2">
+                      <img
+                        src={salary.logo}
+                        alt="Company Logo Preview"
+                        className="h-16 w-16 object-contain border border-gray-300 rounded-md"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* QR Code */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    QR Code Image
+                  </label>
+                  <input
+                    type="file"
+                    name="qrCode"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
+                  />
+                  {salary.qrCode && (
+                    <div className="mt-2">
+                      <img
+                        src={salary.qrCode}
+                        alt="QR Code Preview"
+                        className="h-16 w-16 object-contain border border-gray-300 rounded-md"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Company Name */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Company Name
+                  </label>
+                  <input
+                    type="text"
+                    name="companyName"
+                    value={salary.companyName}
+                    onChange={handleChange}
+                    placeholder="Enter company name"
+                    className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
+                  />
+                </div>
+
+                {/* Company Address */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Company Address / Location
+                  </label>
+                  <textarea
+                    name="companyAddress"
+                    value={salary.companyAddress}
+                    onChange={handleChange}
+                    placeholder="Enter company address or location"
+                    rows="2"
+                    className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900 resize-vertical"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Employee and Salary Information */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">
+                Employee & Salary Details
+              </h3>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Department */}
               <div>
@@ -222,7 +347,7 @@ const Add = () => {
                 <select
                   name="department"
                   onChange={handleDepartment}
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
                   required
                 >
                   <option value="">Select Department</option>
@@ -243,7 +368,7 @@ const Add = () => {
                   name="employeeId"
                   value={salary.employeeId}
                   onChange={handleEmployeeChange}
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
                   required
                 >
                   <option value="">Select Employee</option>
@@ -270,7 +395,7 @@ const Add = () => {
                   type="text"
                   name="employeeName"
                   value={salary.employeeName || ""}
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md bg-gray-100"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md bg-gray-100 text-gray-900"
                   readOnly
                   placeholder="Auto-filled from employee selection"
                 />
@@ -289,7 +414,7 @@ const Add = () => {
                   placeholder="Enter basic salary"
                   min="0"
                   step="0.01"
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
                   required
                 />
               </div>
@@ -307,7 +432,7 @@ const Add = () => {
                   placeholder="Enter allowances"
                   min="0"
                   step="0.01"
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
                   required
                 />
               </div>
@@ -339,7 +464,7 @@ const Add = () => {
                   placeholder="Enter paid days"
                   min="1"
                   max="31"
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
                   required
                 />
               </div>
@@ -357,7 +482,7 @@ const Add = () => {
                   placeholder="Enter LOP days"
                   min="0"
                   max="31"
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
                 />
               </div>
 
@@ -371,7 +496,7 @@ const Add = () => {
                   name="payDate"
                   value={salary.payDate}
                   onChange={handleChange}
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
                   required
                 />
               </div>
@@ -389,7 +514,7 @@ const Add = () => {
                   placeholder="Enter medical fund"
                   min="0"
                   step="0.01"
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
                 />
               </div>
 
@@ -406,7 +531,7 @@ const Add = () => {
                   placeholder="Enter PF amount"
                   min="0"
                   step="0.01"
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
                 />
               </div>
 
@@ -423,7 +548,7 @@ const Add = () => {
                   placeholder="Enter other deductions"
                   min="0"
                   step="0.01"
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
                 />
               </div>
 
@@ -440,7 +565,7 @@ const Add = () => {
                   placeholder="Enter professional tax"
                   min="0"
                   step="0.01"
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
                 />
               </div>
 
@@ -457,7 +582,7 @@ const Add = () => {
                   placeholder="Enter income tax"
                   min="0"
                   step="0.01"
-                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
                 />
               </div>
 

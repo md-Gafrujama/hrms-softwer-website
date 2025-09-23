@@ -16,6 +16,7 @@ import React from 'react'
 import { FaBars, FaTimes } from "react-icons/fa";
 import { useAuth } from '../../context/AuthContext.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
+import NotificationDropdown from './NotificationDropdown.jsx'
 
 const Navbar = ({ isMobileMenuOpen, setIsMobileMenuOpen, isSidebarCollapsed, setIsSidebarCollapsed }) => {
     const { user, logout } = useAuth()
@@ -63,6 +64,8 @@ const Navbar = ({ isMobileMenuOpen, setIsMobileMenuOpen, isSidebarCollapsed, set
             {/* Right Section - User Actions */}
             <div className='flex items-center space-x-3'>
                 <ThemeToggle />
+                <NotificationDropdown />
+                
                 {/* User Avatar/Initial */}
                 <div className='hidden sm:flex items-center justify-center w-10 h-10 bg-teal-500/20 dark:bg-gray-700/40 rounded-full border border-teal-300/30 dark:border-gray-600'>
                     <span className='text-teal-100 dark:text-gray-200 font-semibold text-sm'>
