@@ -13,7 +13,7 @@ import recent from './routes/recent.js';
 import connectToDatabase from './db/db.js';
 import { createServer } from 'http';
 import { initSocket } from './socket/sockect.js';
-
+import noti from "./routes/notification.js";
 dotenv.config();
 
 const app = express();
@@ -31,6 +31,7 @@ app.use('/api/setting', settingRouter);
 app.use('/api/attendance', attendanceRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/recent', recent);
+app.use("/api/noti",noti);
 
 connectToDatabase();
 const server = createServer(app);

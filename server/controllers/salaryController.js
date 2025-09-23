@@ -17,6 +17,10 @@ const addSalary = async (req, res) => {
       deductions = 0,
       professionalTaxes,
       incomeTaxes,
+      qr,
+      logo,
+      companyName,
+      location,
     } = req.body;
 
     const payDateObj = new Date(payDate);
@@ -63,6 +67,10 @@ const addSalary = async (req, res) => {
       netSalary,
       netSalary2,
       month: month,
+      qr,
+      logo,
+      companyName,
+      location,
     });
 
     await newSalary.save();
@@ -76,7 +84,7 @@ const addSalary = async (req, res) => {
       salaryDetails: {
         basicSalary,
         netSalary,
-      },  
+      },
     });
 
     return res
@@ -123,7 +131,6 @@ const getUniqueSalary = async (req, res) => {
   }
 };
 
-// CORRECTED: Enhanced getSalary function with proper role-based security
 const getSalary = async (req, res) => {
   try {
     const { id, role } = req.params;
@@ -137,7 +144,6 @@ const getSalary = async (req, res) => {
       req.user.role
     );
 
-    // SECURITY: Verify that the requested role matches the user's actual role from JWT
     if (req.user.role !== role) {
       console.log("❌ SECURITY VIOLATION: Role mismatch!");
       console.log("JWT Token Role:", req.user.role);
@@ -154,13 +160,11 @@ const getSalary = async (req, res) => {
       console.log("🔑 Admin access granted");
 
       if (id === "all") {
-        // Admin viewing all salaries
         console.log("📋 Fetching ALL salary records for admin");
         salary = await Salary.find()
           .populate("employeeId", "employeeId employeeName")
           .sort({ payDate: -1 });
       } else {
-        // Admin viewing specific employee's salary
         console.log("👤 Fetching salary records for employee ID:", id);
         salary = await Salary.find({ employeeId: id })
           .populate("employeeId", "employeeId employeeName")
@@ -169,7 +173,6 @@ const getSalary = async (req, res) => {
     } else if (role === "employee") {
       console.log("👨‍💼 Employee access - finding employee record");
 
-      // For employees, always use their JWT user ID to find their employee record
       const employee = await Employee.findOne({ userId: req.user._id });
 
       if (!employee) {
@@ -187,7 +190,6 @@ const getSalary = async (req, res) => {
         userId: employee.userId,
       });
 
-      // Find salary records for this employee only
       salary = await Salary.find({ employeeId: employee._id })
         .populate("employeeId", "employeeId employeeName")
         .sort({ payDate: -1 });
