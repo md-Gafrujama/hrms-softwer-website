@@ -14,6 +14,8 @@ import connectToDatabase from './db/db.js';
 import { createServer } from 'http';
 import { initSocket } from './socket/sockect.js';
 import noti from "./routes/notification.js";
+import expenses from "./routes/Expenses.js";
+
 dotenv.config();
 
 const app = express();
@@ -22,6 +24,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public/uploads'));
 
+// routes
 app.use('/api/auth', authRouter);
 app.use('/api/department', departmentRouter);
 app.use('/api/employee', employeeRouter);
@@ -31,7 +34,8 @@ app.use('/api/setting', settingRouter);
 app.use('/api/attendance', attendanceRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/recent', recent);
-app.use("/api/noti",noti);
+app.use("/api/noti", noti);
+app.use("/api/expense", expenses);   // ✅ Fixed
 
 connectToDatabase();
 const server = createServer(app);

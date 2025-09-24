@@ -23,6 +23,7 @@ import Detail from "./components/leave/Detail";
 import Attendance from "./components/attendance/Attendance";
 import AttendanceReport from "./components/attendance/AttendanceReport";
 import OrganizationPage from "./pages/OrganizationPage";
+import AddExpenses from "./components/dashboard/AddExpenses";
 
 function App() {
   return (
@@ -46,6 +47,11 @@ function App() {
             path="/admin-dashboard/departments"
             element={<DepartmentList />}
           ></Route>
+                    <Route
+            path="/admin-dashboard/expenses"
+            element={<AddExpenses/>}
+          ></Route>
+
           <Route
             path="/admin-dashboard/add-department"
             element={<AddDepartment />}

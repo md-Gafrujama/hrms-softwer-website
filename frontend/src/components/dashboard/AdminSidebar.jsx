@@ -181,6 +181,11 @@ const AdminSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen, isSidebarCollapse
       icon: FaCogs,
       label: "Settings",
     },
+        {
+      to: "/admin-dashboard/expenses",
+      icon: FaCogs,
+      label: "Expenses",
+    },
   ];
 
   return (
