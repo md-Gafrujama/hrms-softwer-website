@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FaBell, FaTimes } from 'react-icons/fa';
-
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const NotificationDropdown = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
@@ -16,13 +16,33 @@ const NotificationDropdown = () => {
             setLoading(true);
             setError(null);
             try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error("No authentication token found");
+                }
                 
-                const response = await fetch("/api/notifications");
-                if (!response.ok) throw new Error("Failed to fetch notifications");
+                const response = await fetch(`${baseURL}/api/noti/getAllNotifications`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
                 const data = await response.json();
-                setNotifications(data); 
+                
+                // Handle the API response structure: {success: true, notifications: [...]}
+                if (data.success && data.notifications) {
+                    setNotifications(data.notifications);
+                } else {
+                    throw new Error(data.message || "Failed to fetch notifications");
+                }
             } catch (err) {
+                console.error('Error fetching notifications:', err);
                 setError(err.message);
             } finally {
                 setLoading(false);
@@ -55,7 +75,7 @@ const NotificationDropdown = () => {
 
     const markAsRead = (id) => {
         setNotifications((prev) =>
-            prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+            prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
         );
     };
 
@@ -64,7 +84,7 @@ const NotificationDropdown = () => {
     };
 
     const removeNotification = (id) => {
-        setNotifications((prev) => prev.filter((n) => n.id !== id));
+        setNotifications((prev) => prev.filter((n) => n._id !== id));
     };
 
     return (
@@ -123,11 +143,11 @@ const NotificationDropdown = () => {
                         ) : (
                             notifications.map((notification) => (
                                 <div
-                                    key={notification.id}
-                                    className={`relative p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer ${
+                                    key={notification._id}
+                                    className={`group relative p-4 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer ${
                                         !notification.isRead ? "bg-blue-50 dark:bg-blue-900/20" : ""
                                     }`}
-                                    onClick={() => markAsRead(notification.id)}
+                                    onClick={() => markAsRead(notification._id)}
                                 >
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1 min-w-0">
@@ -144,13 +164,19 @@ const NotificationDropdown = () => {
                                                 </p>
                                             </div>
                                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                {notification.time}
+                                                {new Date(notification.createdAt).toLocaleDateString('en-US', {
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
                                             </p>
                                         </div>
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                removeNotification(notification.id);
+                                                removeNotification(notification._id);
                                             }}
                                             className="ml-2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
                                             title="Remove notification"

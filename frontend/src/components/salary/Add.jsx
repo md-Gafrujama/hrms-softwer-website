@@ -11,9 +11,9 @@ const Add = () => {
     employeeId: "",
     employeeName: "",
     logo: "",
-    qrCode: "",
+    qr: "",
     companyName: "",
-    companyAddress: "",
+    location: "",
     basicSalary: 0,
     allowances: 0,
     deductions: 0,
@@ -217,6 +217,22 @@ const Add = () => {
       alert("Paid days must be between 1 and 31");
       return;
     }
+    if (!salary.companyName.trim()) {
+      alert("Please enter company name");
+      return;
+    }
+    if (!salary.location.trim()) {
+      alert("Please enter company address/location");
+      return;
+    }
+    if (!salary.logo) {
+      alert("Please upload company logo");
+      return;
+    }
+    if (!salary.qr) {
+      alert("Please upload QR code");
+      return;
+    }
 
     try {
       const response = await axios.post(`${baseURL}/api/salary/add`, salary, {
@@ -231,7 +247,7 @@ const Add = () => {
           message: "Salary received successfully",
         });
         alert("Salary added successfully!");
-        navigate("/admin-dashboard/salary");
+        navigate("/admin-dashboard/employees");
       }
     } catch (error) {
       if (error.response && !error.response.data.success) {
@@ -257,7 +273,7 @@ const Add = () => {
                 {/* Logo */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Company Logo Image
+                    Company Logo Image <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="file"
@@ -280,19 +296,19 @@ const Add = () => {
                 {/* QR Code */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    QR Code Image
+                    QR Code Image <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="file"
-                    name="qrCode"
+                    name="qr"
                     accept="image/*"
                     onChange={handleFileChange}
                     className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
                   />
-                  {salary.qrCode && (
+                  {salary.qr && (
                     <div className="mt-2">
                       <img
-                        src={salary.qrCode}
+                        src={salary.qr}
                         alt="QR Code Preview"
                         className="h-16 w-16 object-contain border border-gray-300 rounded-md"
                       />
@@ -303,7 +319,7 @@ const Add = () => {
                 {/* Company Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Company Name
+                    Company Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -312,21 +328,23 @@ const Add = () => {
                     onChange={handleChange}
                     placeholder="Enter company name"
                     className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900"
+                    required
                   />
                 </div>
 
                 {/* Company Address */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700">
-                    Company Address / Location
+                    Company Address / Location <span className="text-red-500">*</span>
                   </label>
                   <textarea
-                    name="companyAddress"
-                    value={salary.companyAddress}
+                    name="location"
+                    value={salary.location}
                     onChange={handleChange}
                     placeholder="Enter company address or location"
                     rows="2"
                     className="mt-1 p-2 block w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white text-gray-900 resize-vertical"
+                    required
                   />
                 </div>
               </div>

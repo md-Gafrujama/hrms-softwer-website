@@ -164,7 +164,7 @@ const AdminSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen, isSidebarCollapse
     {
       to: "/admin-dashboard/salary/add",
       icon: FaMoneyBillWave,
-      label: "Salary",
+      label: " Add Salary",
     },
     {
       to: "/admin-dashboard/attendance",

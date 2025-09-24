@@ -1,5 +1,6 @@
 import Salary from "../models/Salary.js";
 import Employee from "../models/Employee.js";
+import { sendNewNotification } from "../socket/sockect.js";
 
 const addSalary = async (req, res) => {
   try {
