@@ -122,6 +122,7 @@ import {
   FaChartLine,
   FaMoneyBillWave,
   FaSitemap,
+  FaReceipt,
 } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext.jsx";
 
@@ -183,7 +184,7 @@ const AdminSidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen, isSidebarCollapse
     },
         {
       to: "/admin-dashboard/expenses",
-      icon: FaCogs,
+      icon: FaReceipt,
       label: "Expenses",
     },
   ];

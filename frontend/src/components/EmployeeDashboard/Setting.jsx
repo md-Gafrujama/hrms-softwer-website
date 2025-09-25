@@ -64,7 +64,7 @@ const Setting = () => {
             name="oldPassword"
             placeholder="Change Password"
             onChange={handleChange}
-            className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+            className="mt-1 w-full p-2 border border-gray-300 rounded-md bg-white"
             required
           />
         </div>
@@ -78,7 +78,7 @@ const Setting = () => {
             name="newPassword"
             placeholder="New Password"
             onChange={handleChange}
-            className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+            className="mt-1 w-full p-2 border border-gray-300 rounded-md bg-white"
             required
           />
         </div>
@@ -92,7 +92,7 @@ const Setting = () => {
             name="confirmPassword"
             placeholder="Confirm Password"
             onChange={handleChange}
-            className="mt-1 w-full p-2 border border-gray-300 rounded-md"
+            className="mt-1 w-full p-2 border border-gray-300 rounded-md bg-white"
             required
           />
         </div>
