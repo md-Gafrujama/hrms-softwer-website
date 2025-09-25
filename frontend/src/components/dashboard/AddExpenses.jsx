@@ -5,6 +5,7 @@ const AddExpenses = () => {
   const [reason, setReason] = useState("");
   const [amount, setAmount] = useState(0);
   const [department, setDepartment] = useState("");
+  const [date, setDate] = useState("");
   const [expenses, setExpenses] = useState([]); // ✅ store all expenses
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -15,10 +16,23 @@ const AddExpenses = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
+      // Combine selected date with current time
+      const currentTime = new Date();
+      const selectedDate = new Date(date);
+      const dateTime = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate(),
+        currentTime.getHours(),
+        currentTime.getMinutes(),
+        currentTime.getSeconds()
+      );
+
       const res = await axios.post(`${baseUrl}/api/expense/addExpense`, {
         reason,
         amount,
         department,
+        dateTime: dateTime.toISOString(),
       });
 
       if (res.status === 200) {
@@ -28,6 +42,7 @@ const AddExpenses = () => {
         setReason("");
         setAmount(0);
         setDepartment("");
+        setDate("");
         // refresh list
         fetchExpenses();
       }
@@ -172,6 +187,22 @@ const AddExpenses = () => {
                   </select>
                 </div>
                 
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700 flex items-center">
+                    <svg className="w-4 h-4 mr-2 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    required
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-teal-400 focus:bg-white transition-all duration-200 text-slate-700"
+                  />
+                </div>
+                
                 <button
                   type="submit"
                   disabled={isLoading}
@@ -241,6 +272,17 @@ const AddExpenses = () => {
                                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-700">
                                     {exp.department}
                                   </span>
+                                  {exp.dateTime && (
+                                    <span className="text-xs text-slate-500">
+                                      {new Date(exp.dateTime).toLocaleString('en-IN', {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>
