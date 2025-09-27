@@ -6,9 +6,14 @@ const AddExpenses = () => {
   const [amount, setAmount] = useState(0);
   const [department, setDepartment] = useState("");
   const [date, setDate] = useState("");
-  const [expenses, setExpenses] = useState([]); // ✅ store all expenses
+  const [expenses, setExpenses] = useState([]); 
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [editReason, setEditReason] = useState("");
+  const [editAmount, setEditAmount] = useState(0);
+  const [editDepartment, setEditDepartment] = useState("");
+  const [editDate, setEditDate] = useState("");
 
   const baseUrl = import.meta.env.VITE_API_URL;
 
@@ -16,7 +21,7 @@ const AddExpenses = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // Combine selected date with current time
+  
       const currentTime = new Date();
       const selectedDate = new Date(date);
       const dateTime = new Date(
@@ -54,13 +59,51 @@ const AddExpenses = () => {
     }
   };
 
-  // ✅ fetch expenses from backend
+
   const fetchExpenses = async () => {
     try {
       const res = await axios.get(`${baseUrl}/api/expense/getExpense`);
-      setExpenses(res.data.data); // backend returns {data: [...], message: "..."}
+      setExpenses(res.data.data); 
     } catch (err) {
       console.error("Error fetching expenses", err);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete?")) return;
+    try {
+
+      await axios.delete(`${baseUrl}/api/expense/deleteExpense/${id}`);
+      fetchExpenses(); 
+    } 
+    catch (error) {
+      console.error("Error deleting expense:", error);
+      alert("Failed to delete expense. Please try again.");
+    }
+  }
+
+  const handleEditClick = (exp) => {
+    setEditId(exp._id);
+    setEditReason(exp.reason);
+    setEditAmount(exp.amount);
+    setEditDepartment(exp.department);
+    setEditDate(exp.dateTime ? exp.dateTime.slice(0, 10) : "");
+  };
+
+  const handleUpdate = async (id) => {
+    try {
+      const updatedExpense = {
+        reason: editReason,
+        amount: editAmount,
+        department: editDepartment,
+        dateTime: new Date(editDate).toISOString(),
+      };
+      await axios.put(`${baseUrl}/api/expense/updateExpense/${id}`, updatedExpense);
+      setEditId(null);
+      fetchExpenses();
+    } catch (error) {
+      console.error("Error updating expense:", error);
+      alert("Failed to update expense. Please try again.");
     }
   };
 
@@ -290,7 +333,10 @@ const AddExpenses = () => {
                           <div className="text-right">
                             <div className="text-2xl font-bold text-slate-800">
                               ₹{Number(exp.amount).toLocaleString('en-IN')}
+                            
                             </div>
+                              <button onClick={() => handleDelete(exp._id)}>Delete expense</button>
+                              <button onClick={() => handleEditClick(exp)}>Update expense details</button>
                           </div>
                         </div>
                       </div>
@@ -302,6 +348,75 @@ const AddExpenses = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Modal */}
+      {editId && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Edit Expense</h2>
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                handleUpdate(editId);
+              }}
+              className="space-y-4"
+            >
+              <input
+                type="text"
+                value={editReason}
+                onChange={e => setEditReason(e.target.value)}
+                placeholder="Reason"
+                required
+                className="w-full px-3 py-2 border rounded"
+              />
+              <input
+                type="number"
+                value={editAmount}
+                onChange={e => setEditAmount(e.target.value)}
+                placeholder="Amount"
+                required
+                className="w-full px-3 py-2 border rounded"
+              />
+              <select
+                value={editDepartment}
+                onChange={e => setEditDepartment(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded"
+              >
+                <option value="">Select Department</option>
+                <option value="HR">Human Resources</option>
+                <option value="IT">Information Technology</option>
+                <option value="Finance">Finance</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Operations">Operations</option>
+                <option value="Sales">Sales</option>
+              </select>
+              <input
+                type="date"
+                value={editDate}
+                onChange={e => setEditDate(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded"
+              />
+              <div className="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setEditId(null)}
+                  className="px-4 py-2 bg-gray-200 rounded"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-teal-600 text-white rounded"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

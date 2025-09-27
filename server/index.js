@@ -35,7 +35,7 @@ app.use('/api/attendance', attendanceRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/recent', recent);
 app.use("/api/noti", noti);
-app.use("/api/expense", expenses);   // ✅ Fixed
+app.use("/api/expense", expenses);   
 
 connectToDatabase();
 const server = createServer(app);

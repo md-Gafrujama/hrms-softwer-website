@@ -19,3 +19,29 @@ export const getExpense = async(req , resp ) => {
     resp.json({data:data , message:"all the expenses fetched"});
 
 }
+
+export const deleteExpense = async(req , resp) => {
+
+     try{
+
+     const id = req.params.id;
+     await Expense.deleteOne({_id:id}) ;
+     resp.status(200).json({message:"expense deleted successfully"});
+
+     }catch{
+
+          resp.status(500).json({message:"un-expected error occured"});
+
+     }
+
+}
+
+export const updateExpense = async (req, resp) => {
+  try {
+    const id = req.params.id;
+    await Expense.findByIdAndUpdate(id, req.body, { new: true });
+    resp.status(200).json({ message: "details updated successfully" });
+  } catch {
+    resp.status(500).json({ message: "failed to update expenses" });
+  }
+};
